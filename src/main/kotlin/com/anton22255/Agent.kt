@@ -53,8 +53,23 @@ class HonestAgent(override val hashRate: Int, blockChain: Chain) : Agent {
     override fun receiveMessage(message: Message) {
         //parse message
 
-        when (processMessage(message)) {
-            ChainAnswer.ACCEPT -> messagesForSending.add(message)
+        val chainAnswer = processMessage(message)
+        when (chainAnswer) {
+            ChainAnswer.ACCEPT -> sendBlockMessageToChannels(
+                (message.data as Block).copy(),
+                message.expiredTime,
+                Type.BLOCK
+            )
+            ChainAnswer.REQUEST -> messagesForSending.add(
+                Message(
+                    Type.REQUEST,
+                    chainAnswer.data,
+                    id,
+                    message.senderId,
+                    message.expiredTime,
+                    message.expiredTime + Main.sendTime
+                )
+            )
         }
 
     }
@@ -68,6 +83,10 @@ class HonestAgent(override val hashRate: Int, blockChain: Chain) : Agent {
             }
             Type.BLOCK -> {
                 blockChain.addBlock(message.data as Block)
+            }
+
+            Type.REQUEST -> {
+                blockChain.requestData(message.data)
             }
             else -> {
                 ChainAnswer.DECLINE
@@ -95,15 +114,19 @@ class HonestAgent(override val hashRate: Int, blockChain: Chain) : Agent {
         )
             .let {
                 blockChain.addBlock(it)
-                sendBlockMessageToChannels(it, time)
+                sendBlockMessageToChannels(it, time, Type.BLOCK)
             }
     }
 
-    private fun sendBlockMessageToChannels(it: Block, time: Long) {
+    private fun sendBlockMessageToChannels(
+        it: Any,
+        time: Long,
+        type: Type
+    ) {
         channels.forEach { agent ->
             messagesForSending.add(
                 Message(
-                    type = Type.BLOCK,
+                    type = type,
                     data = it,
                     initTime = time,
                     expiredTime = time + Main.sendTime,

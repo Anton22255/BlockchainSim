@@ -9,6 +9,8 @@ interface Chain {
 
     fun addBlock(block: Block): ChainAnswer
 
+    fun requestData(request: Any): Any
+
     fun copy(): Chain
 }
 

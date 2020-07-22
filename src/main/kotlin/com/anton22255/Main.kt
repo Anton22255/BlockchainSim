@@ -4,10 +4,9 @@ import com.anton22255.blockchain.AntBlockChain
 import com.anton22255.transport.Message
 import com.anton22255.transport.Type
 import javafx.application.Application.launch
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import sun.management.snmp.jvminstr.JvmThreadInstanceEntryImpl.ThreadStateMap.Byte0.runnable
+import java.lang.Runnable
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
@@ -17,7 +16,7 @@ import kotlin.random.Random
 
 object Main {
 
-    private const val initN = 100
+    private const val initN = 1000
     private const val channelMinCount = 5
     private const val maxHashAgentRate = 1000
     private const val period: Int = 200
@@ -60,14 +59,10 @@ object Main {
                 it.clearMessage()
             }
 
-            runBlocking<Unit> {
-                val jobs = messageQueue[time]?.map { message ->
-                    launch {
-                        processMessage(population, message)
-                    }
-                }
-                jobs?.forEach { it.join() }
-            }
+            processMessageCorutines(time, population)
+
+//            processMessage(time, population)
+
 //            messageQueue[time]
 //                ?.forEach { message -> processMessage(population, message) }
 
@@ -76,6 +71,38 @@ object Main {
         }
 
         println("time of processing ${System.currentTimeMillis() - timer} mls")
+    }
+
+    private fun processMessageCorutines(
+        time: Long,
+        population: MutableList<Agent>
+    ) {
+
+        val fixedThreadPoolContext = newFixedThreadPoolContext(10, "background")
+
+        runBlocking<Unit>(fixedThreadPoolContext) {
+            val jobs = messageQueue[time]?.map { message ->
+                //                withContext(fixedThreadPoolContext) {
+                launch {
+                    processMessage(population, message)
+                }
+            }
+            jobs?.forEach { it.join() }
+        }
+    }
+
+
+    private fun processMessage(time: Long, population: MutableList<Agent>) {
+        val executor = Executors.newFixedThreadPool(16)
+        messageQueue[time]?.map { message ->
+            val worker = Runnable { processMessage(population, message) }
+            executor.execute(worker)
+        }
+
+        executor.shutdown()
+        while (!executor.isTerminated) {
+        }
+//        println("Finished all threads")
     }
 
     private fun processMessage(

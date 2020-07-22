@@ -14,7 +14,9 @@ data class Message(
 enum class Type {
     TRANSACTION,
     BLOCK,
-    SETTING
+    SETTING,
+    REQUEST,
+    ANSWER
 }
 
 

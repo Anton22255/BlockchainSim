@@ -36,6 +36,10 @@ class AntBlockChain : Chain {
             this.endOfMainBranch = this@AntBlockChain.endOfMainBranch.copy()
         }
 
+    override fun requestData(request: Any): Any {
+        TODO("not implemented for this type") //To change body of created functions use File | Settings | File Templates.
+    }
+
     fun addToTree(block: Block): ChainAnswer {
 
         val depth = block.depth - 1
