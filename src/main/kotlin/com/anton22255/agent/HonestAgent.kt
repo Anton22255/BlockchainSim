@@ -1,7 +1,7 @@
 package com.anton22255.agent
 
 import com.anton22255.Block
-import com.anton22255.Main
+import com.anton22255.InitData
 import com.anton22255.Transaction
 import com.anton22255.blockchain.Chain
 import com.anton22255.blockchain.ChainAnswer
@@ -10,7 +10,7 @@ import com.anton22255.transport.Type
 import java.util.*
 import kotlin.collections.ArrayList
 
-class HonestAgent(override val hashRate: Long, blockChain: Chain) :
+class HonestAgent(override val hashRate: Long, blockChain: Chain, val initData: InitData) :
     Agent {
     override val id: String = UUID.randomUUID().toString()
     override val channels = ArrayList<Agent>()
@@ -58,7 +58,7 @@ class HonestAgent(override val hashRate: Long, blockChain: Chain) :
                     id,
                     message.senderId,
                     message.expiredTime,
-                    message.expiredTime + Main.sendTime
+                    message.expiredTime + initData.sendTime
                 )
             )
 
@@ -66,7 +66,7 @@ class HonestAgent(override val hashRate: Long, blockChain: Chain) :
                 chainAnswer,
                 message,
                 Type.ANSWER,
-                Main.sendTime + Main.sendBlockTime * ((chainAnswer.data as? List<*>)?.size ?: 0)
+                initData.sendTime + initData.sendBlockTime * ((chainAnswer.data as? List<*>)?.size ?: 0)
             )
         }
 
@@ -151,21 +151,11 @@ class HonestAgent(override val hashRate: Long, blockChain: Chain) :
                     type = type,
                     data = it,
                     initTime = time,
-                    expiredTime = time + Main.sendTime,
+                    expiredTime = time + initData.sendTime,
                     senderId = id,
                     recipientId = agent.id
                 )
             )
         }
-    }
-
-    companion object {
-
-        fun copy(data: Any) =
-            when (data) {
-                is Transaction -> data.copy()
-                is Block -> data.copy()
-                else -> throw  Exception(" Unsupported type!!!")
-            }
     }
 }
