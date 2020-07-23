@@ -9,7 +9,9 @@ interface Chain {
 
     fun addBlock(block: Block): ChainAnswer
 
-    fun requestData(request: Any): Any
+    fun requestData(request: Any): ChainAnswer
+
+    fun answerData(answer: Any): ChainAnswer
 
     fun copy(): Chain
 }
@@ -19,6 +21,7 @@ fun createGenesisBlock() = Block(listOf(Transaction()))
 enum class ChainAnswer {
     ACCEPT,
     DECLINE,
+    ANSWER,
     REQUEST;
 
     lateinit var data: Any

@@ -56,7 +56,7 @@ class HonestAgent(override val hashRate: Int, blockChain: Chain) : Agent {
         val chainAnswer = processMessage(message)
         when (chainAnswer) {
             ChainAnswer.ACCEPT -> sendBlockMessageToChannels(
-                (message.data as Block).copy(),
+                (chainAnswer.data as Block).copy(),
                 message.expiredTime,
                 Type.BLOCK
             )
@@ -87,6 +87,10 @@ class HonestAgent(override val hashRate: Int, blockChain: Chain) : Agent {
 
             Type.REQUEST -> {
                 blockChain.requestData(message.data)
+            }
+
+            Type.ANSWER -> {
+                blockChain.answerData(message.data)
             }
             else -> {
                 ChainAnswer.DECLINE

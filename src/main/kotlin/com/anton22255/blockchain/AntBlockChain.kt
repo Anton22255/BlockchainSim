@@ -20,6 +20,7 @@ class AntBlockChain : Chain {
         if (result == ChainAnswer.ACCEPT) {
             processPool(block)
             findMainBranch()
+            result.data = block
         }
         return result
     }
@@ -36,8 +37,12 @@ class AntBlockChain : Chain {
             this.endOfMainBranch = this@AntBlockChain.endOfMainBranch.copy()
         }
 
-    override fun requestData(request: Any): Any {
+    override fun requestData(request: Any): ChainAnswer {
         TODO("not implemented for this type") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun answerData(answer: Any): ChainAnswer {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     fun addToTree(block: Block): ChainAnswer {
