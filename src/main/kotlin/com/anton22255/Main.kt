@@ -27,6 +27,8 @@ object Main {
     const val liveAlpha = 0.02
 
     const val sendTime = 3
+    const val sendBlockTime = 3
+
 
     var systemHashRate: Long = 0
 

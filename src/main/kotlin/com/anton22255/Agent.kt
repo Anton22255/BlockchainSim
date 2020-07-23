@@ -1,5 +1,6 @@
 package com.anton22255
 
+import com.anton22255.Main.sendBlockTime
 import com.anton22255.blockchain.Chain
 import com.anton22255.blockchain.ChainAnswer
 import com.anton22255.transport.Message
@@ -68,6 +69,18 @@ class HonestAgent(override val hashRate: Int, blockChain: Chain) : Agent {
                     message.senderId,
                     message.expiredTime,
                     message.expiredTime + Main.sendTime
+                )
+            )
+
+            ChainAnswer.ANSWER -> messagesForSending.add(
+                Message(
+                    Type.ANSWER,
+                    chainAnswer.data,
+                    id,
+                    message.senderId,
+                    message.expiredTime,
+                    message.expiredTime + Main.sendTime + sendBlockTime * ((chainAnswer.data as? List<*>)?.size
+                        ?: 0)
                 )
             )
         }

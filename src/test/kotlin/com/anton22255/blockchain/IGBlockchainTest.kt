@@ -47,7 +47,5 @@ internal class IGBlockchainTest {
         assertEquals(
             expectedBlocks,
             blockChain.mainBlocks.map { it.calculateHash() })
-
-
     }
 }
