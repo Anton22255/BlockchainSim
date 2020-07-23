@@ -1,34 +1,38 @@
 package com.anton22255
 
+import com.anton22255.PopulationUtils.createAgent
+import com.anton22255.PopulationUtils.generateTransactions
+import com.anton22255.PopulationUtils.initPopulation
+import com.anton22255.PopulationUtils.updatePopulation
+import com.anton22255.agent.Agent
+import com.anton22255.agent.HonestAgent
 import com.anton22255.blockchain.AntBlockChain
+import com.anton22255.blockchain.ChainType
 import com.anton22255.transport.Message
 import com.anton22255.transport.Type
-import javafx.application.Application.launch
-import kotlinx.coroutines.*
-import sun.management.snmp.jvminstr.JvmThreadInstanceEntryImpl.ThreadStateMap.Byte0.runnable
-import java.lang.Runnable
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.newFixedThreadPoolContext
+import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.runBlocking
 import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.Executor
 import java.util.concurrent.Executors
-import java.util.concurrent.ThreadFactory
-import kotlin.coroutines.CoroutineContext
 import kotlin.random.Random
 
 object Main {
 
-    private const val initN = 1000
-    private const val channelMinCount = 5
-    private const val maxHashAgentRate = 1000
-    private const val period: Int = 200
-    private const val transactionInOneRound: Int = 100
-    private const val periodCount: Long = 500
+    const val initN = 1000
+    const val channelMinCount = 5
+    const val maxHashAgentRate = 1000L
+    private const val period: Int = 20
+    private const val periodCount: Long = 50
+    const val transactionInOneRound: Int = 100
+    val chainType = ChainType.ANT
 
     const val diedAlpha = 0.01
     const val liveAlpha = 0.02
 
     const val sendTime = 3
     const val sendBlockTime = 3
-
 
     var systemHashRate: Long = 0
 
@@ -38,17 +42,20 @@ object Main {
     fun main(args: Array<String>) {
 
         var population = initPopulation()
+        systemHashRate = population.map { it.hashRate }.sum()
+
         print(population.size)
         println()
 
         val timer = System.currentTimeMillis()
         (1..periodCount).forEach { time ->
 
-            if (time.rem(100) == 0L) {
+            if (time.rem(10) == 0L) {
                 println("time $time")
                 println("time of processing ${System.currentTimeMillis() - timer} mls")
             }
-            generateTransactions(population, time)
+            val transactionMessages = generateTransactions(population, time)
+            addMessages(time, transactionMessages)
 
             val choseLuckyAgents = choseLuckyAgents(population.map { it.hashRate }.toList(), period)
             createMinerBlocks(choseLuckyAgents, population, time)
@@ -65,14 +72,21 @@ object Main {
 
 //            processMessage(time, population)
 
-//            messageQueue[time]
-//                ?.forEach { message -> processMessage(population, message) }
+//            simpleMessageProcess(time, population)
 
             population = updatePopulation(population)
 //            println("population numbers " + population.size)
         }
 
         println("time of processing ${System.currentTimeMillis() - timer} mls")
+    }
+
+    private fun simpleMessageProcess(
+        time: Long,
+        population: MutableList<Agent>
+    ) {
+        messageQueue[time]
+            ?.forEach { message -> processMessage(population, message) }
     }
 
     private fun processMessageCorutines(
@@ -84,7 +98,6 @@ object Main {
 
         runBlocking<Unit>(fixedThreadPoolContext) {
             val jobs = messageQueue[time]?.map { message ->
-                //                withContext(fixedThreadPoolContext) {
                 launch {
                     processMessage(population, message)
                 }
@@ -92,7 +105,6 @@ object Main {
             jobs?.forEach { it.join() }
         }
     }
-
 
     private fun processMessage(time: Long, population: MutableList<Agent>) {
         val executor = Executors.newFixedThreadPool(16)
@@ -107,7 +119,7 @@ object Main {
 //        println("Finished all threads")
     }
 
-    private fun processMessage(
+    fun processMessage(
         population: MutableList<Agent>,
         message: Message
     ) {
@@ -124,33 +136,6 @@ object Main {
         choseLuckyAgents.forEach { index -> population[index].createBlock(time) }
     }
 
-    private fun generateTransactions(population: List<Agent>, time: Long) {
-
-        (1..transactionInOneRound)
-            .map {
-                val sender = population[Random.nextInt(population.size)]
-                val recipient = population[Random.nextInt(population.size)]
-
-                val transaction = Transaction(
-                    originator = sender.id,
-                    content = "From ${sender.id} to ${recipient.id} 100",
-                    signature = sender.id.toByteArray()
-                )
-
-                Message(
-                    type = Type.TRANSACTION,
-                    data = transaction,
-                    senderId = sender.id,
-                    recipientId = sender.id,
-                    initTime = time,
-                    expiredTime = 0
-                )
-            }
-            .toList()
-            .let {
-                addMessages(time, it)
-            }
-    }
 
     private fun addMessages(time: Long, messages: List<Message>) {
         messageQueue.getOrPut(time, { ConcurrentLinkedQueue() }).addAll(messages)
@@ -158,37 +143,5 @@ object Main {
 
     private fun addMessage(time: Long, message: Message) {
         messageQueue.getOrPut(time, { ConcurrentLinkedQueue() }).add(message)
-    }
-
-    private fun updatePopulation(population: MutableList<Agent>): MutableList<Agent> {
-        val populationSize = population.size
-        val selectPopulation = selectPopulation(diedAlpha, population)
-        population.removeAll(selectPopulation)
-        removeChannels(population, selectPopulation)
-
-        val burnAdditionalPopulation = addPopulation(liveAlpha, populationSize) {
-            createAgent()
-        }
-
-        population.addAll(burnAdditionalPopulation)
-        initChannels(population, channelMinCount)
-        return population
-    }
-
-    fun initPopulation(): MutableList<Agent> {
-
-        val population = addPopulation(1.0, initN) {
-            createAgent()
-        }
-
-        initChannels(population, channelMinCount)
-        return population as MutableList<Agent>
-    }
-
-    private fun createAgent(): HonestAgent {
-        val hashRate = Random.nextInt(maxHashAgentRate)
-        systemHashRate.plus(hashRate)
-
-        return HonestAgent(hashRate, AntBlockChain())
     }
 }

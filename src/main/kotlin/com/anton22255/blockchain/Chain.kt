@@ -26,3 +26,15 @@ enum class ChainAnswer {
 
     lateinit var data: Any
 }
+
+enum class ChainType {
+    ANT,
+    IG
+}
+
+fun createChain(type: ChainType) =
+    when (type) {
+        ChainType.ANT -> AntBlockChain()
+        else -> IGBlockchain()
+
+    }

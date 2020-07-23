@@ -1,5 +1,6 @@
 package com.anton22255
 
+import com.anton22255.agent.Agent
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
@@ -15,7 +16,7 @@ fun choseLuckyAgents(agentProbabilities: List<Double>, periodProbability: Double
 }
 
 
-fun choseLuckyAgents(agentHashRates: List<Int>, period: Int): ArrayList<Int> {
+fun choseLuckyAgents(agentHashRates: List<Long>, period: Int): ArrayList<Int> {
     val random = Random
     val agents = ArrayList<Int>()
     val sumHashRate = agentHashRates.sum()

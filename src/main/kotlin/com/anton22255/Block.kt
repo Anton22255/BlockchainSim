@@ -12,12 +12,10 @@ data class Block(var transactions: List<Transaction>, var prevBlock: Block? = nu
     var nonce: String = ""
     val depth: Int
 
-
     init {
         this.prevHash = prevBlock?.calculateHash()
         depth = prevBlock?.depth?.plus(1) ?: 0
     }
-
 
     override fun equals(obj: Any?): Boolean {
         val block = obj as Block? ?: return false

@@ -47,22 +47,24 @@ class AntBlockChain : Chain {
 
     fun addToTree(block: Block): ChainAnswer {
 
-        val depth = block.depth - 1
-        val blocksOnDepth = mainBlocks.getOrNull(depth)
-        return if (blocksOnDepth?.isNotEmpty() == true) {
-            blocksOnDepth.find {
-                it.calculateHash() == block.prevHash
+        synchronized(this) {
+            val depth = block.depth - 1
+            val blocksOnDepth = getLevel(depth)
+            return if (blocksOnDepth?.isNotEmpty() == true) {
+                blocksOnDepth.find {
+                    it.calculateHash() == block.prevHash
+                }
+                    ?.let {
+                        addToMainTree(block)
+                    } ?: addToPool(block)
+            } else {
+                addToPool(block)
             }
-                ?.let {
-                    addToMainTree(block)
-                } ?: addToPool(block)
-        } else {
-            addToPool(block)
         }
     }
 
     fun addToMainTree(block: Block): ChainAnswer {
-        val blocks = mainBlocks.getOrNull(block.depth)
+        val blocks = getLevel(block.depth)
         return if (blocks?.contains(block) == true) {
             ChainAnswer.DECLINE
         } else {
@@ -71,6 +73,8 @@ class AntBlockChain : Chain {
             ChainAnswer.ACCEPT
         }
     }
+
+    private fun getLevel(depth: Int) = mainBlocks.getOrNull(depth)
 
     fun addToPool(block: Block): ChainAnswer {
         return if (!blockPool.contains(block)) {
@@ -83,10 +87,12 @@ class AntBlockChain : Chain {
 
     fun processPool(addedBlock: Block) {
 
-        blockPool.filter {
-            addedBlock.calculateHash() == it.prevHash
-        }?.map {
-            addToMainTree(it)
+        synchronized(this) {
+            blockPool.filter {
+                addedBlock.calculateHash() == it.prevHash
+            }?.map {
+                addToMainTree(it)
+            }
         }
     }
 

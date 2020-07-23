@@ -1,6 +1,8 @@
-package com.anton22255
+package com.anton22255.agent
 
-import com.anton22255.Main.sendBlockTime
+import com.anton22255.Block
+import com.anton22255.Main
+import com.anton22255.Transaction
 import com.anton22255.blockchain.Chain
 import com.anton22255.blockchain.ChainAnswer
 import com.anton22255.transport.Message
@@ -8,30 +10,8 @@ import com.anton22255.transport.Type
 import java.util.*
 import kotlin.collections.ArrayList
 
-interface Agent {
-
-    val id: String
-    val channels: Collection<Agent>
-    val blockChain: Chain
-    val hashRate: Int
-
-    fun sendMessage(): List<Message>
-
-    fun receiveMessage(message: Message)
-
-    fun addChanel(agent: Agent)
-
-    fun deleteChannels(agents: List<Agent>)
-
-    fun createBlock(time: Long)
-
-    fun init()
-
-    fun clearMessage()
-
-}
-
-class HonestAgent(override val hashRate: Int, blockChain: Chain) : Agent {
+class HonestAgent(override val hashRate: Long, blockChain: Chain) :
+    Agent {
     override val id: String = UUID.randomUUID().toString()
     override val channels = ArrayList<Agent>()
     override var blockChain: Chain = blockChain
@@ -55,12 +35,22 @@ class HonestAgent(override val hashRate: Int, blockChain: Chain) : Agent {
         //parse message
 
         val chainAnswer = processMessage(message)
-        when (chainAnswer) {
-            ChainAnswer.ACCEPT -> sendBlockMessageToChannels(
-                (chainAnswer.data as Block).copy(),
-                message.expiredTime,
-                Type.BLOCK
-            )
+        when (Pair(message.type, chainAnswer)) {
+            Type.TRANSACTION, ChainAnswer.ACCEPT -> {
+                sendMessageToChannels(
+                    (message.data as Transaction).copy(),
+                    message.expiredTime,
+                    message.type
+                )
+            }
+            Type.BLOCK, ChainAnswer.ACCEPT -> {
+                sendMessageToChannels(
+                    (message.data as Block).copy(),
+                    message.expiredTime,
+                    message.type
+                )
+            }
+
             ChainAnswer.REQUEST -> messagesForSending.add(
                 Message(
                     Type.REQUEST,
@@ -72,19 +62,32 @@ class HonestAgent(override val hashRate: Int, blockChain: Chain) : Agent {
                 )
             )
 
-            ChainAnswer.ANSWER -> messagesForSending.add(
-                Message(
-                    Type.ANSWER,
-                    chainAnswer.data,
-                    id,
-                    message.senderId,
-                    message.expiredTime,
-                    message.expiredTime + Main.sendTime + sendBlockTime * ((chainAnswer.data as? List<*>)?.size
-                        ?: 0)
-                )
+            ChainAnswer.ANSWER -> sendMessage(
+                chainAnswer,
+                message,
+                Type.ANSWER,
+                Main.sendTime + Main.sendBlockTime * ((chainAnswer.data as? List<*>)?.size ?: 0)
             )
         }
 
+    }
+
+    private fun sendMessage(
+        chainAnswer: ChainAnswer,
+        message: Message,
+        type: Type,
+        extraTime: Int
+    ) {
+        messagesForSending.add(
+            Message(
+                type,
+                chainAnswer.data,
+                id,
+                message.senderId,
+                message.expiredTime,
+                message.expiredTime + extraTime
+            )
+        )
     }
 
     private fun processMessage(message: Message): ChainAnswer {
@@ -92,7 +95,9 @@ class HonestAgent(override val hashRate: Int, blockChain: Chain) : Agent {
         return when (message.type) {
             Type.TRANSACTION -> {
                 transactionPool.add(message.data as Transaction)
-                ChainAnswer.ACCEPT
+                ChainAnswer.ACCEPT.apply {
+                    data = message.data
+                }
             }
             Type.BLOCK -> {
                 blockChain.addBlock(message.data as Block)
@@ -131,11 +136,11 @@ class HonestAgent(override val hashRate: Int, blockChain: Chain) : Agent {
         )
             .let {
                 blockChain.addBlock(it)
-                sendBlockMessageToChannels(it, time, Type.BLOCK)
+                sendMessageToChannels(it, time, Type.BLOCK)
             }
     }
 
-    private fun sendBlockMessageToChannels(
+    private fun sendMessageToChannels(
         it: Any,
         time: Long,
         type: Type
@@ -152,5 +157,15 @@ class HonestAgent(override val hashRate: Int, blockChain: Chain) : Agent {
                 )
             )
         }
+    }
+
+    companion object {
+
+        fun copy(data: Any) =
+            when (data) {
+                is Transaction -> data.copy()
+                is Block -> data.copy()
+                else -> throw  Exception(" Unsupported type!!!")
+            }
     }
 }
