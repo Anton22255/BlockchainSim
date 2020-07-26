@@ -1,6 +1,7 @@
 package com.anton22255
 
 import com.anton22255.blockchain.ChainType
+import com.anton22255.db.DataBase
 import com.anton22255.transport.Message
 import java.util.*
 import kotlin.collections.HashMap
@@ -26,6 +27,9 @@ object Main {
 
     @JvmStatic
     fun main(args: Array<String>) {
+
+        DataBase()
+            .init()
 
         val experiment = Experiment(
             initData = InitData(
