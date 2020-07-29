@@ -2,6 +2,7 @@ package com.anton22255.agent
 
 import com.anton22255.Block
 import com.anton22255.InitData
+import com.anton22255.Statistic
 import com.anton22255.Transaction
 import com.anton22255.blockchain.Chain
 import com.anton22255.blockchain.ChainAnswer
@@ -10,7 +11,12 @@ import com.anton22255.transport.Type
 import java.util.*
 import kotlin.collections.ArrayList
 
-class HonestAgent(override val hashRate: Long, blockChain: Chain, val initData: InitData) :
+class HonestAgent(
+    override val hashRate: Long,
+    blockChain: Chain,
+    val initData: InitData,
+    val statistic: Statistic
+) :
     Agent {
     override val id: String = UUID.randomUUID().toString()
     override val channels = ArrayList<Agent>()
@@ -100,7 +106,11 @@ class HonestAgent(override val hashRate: Long, blockChain: Chain, val initData: 
                 }
             }
             Type.BLOCK -> {
-                blockChain.addBlock(message.data as Block)
+                blockChain.addBlock(message.data as Block).also {
+                    if (it == ChainAnswer.DECLINE && message.data.depth == blockChain.getLastBlock().depth) {
+                        statistic.incrementForkCount(message.expiredTime.toInt())
+                    }
+                }
             }
 
             Type.REQUEST -> {
@@ -109,6 +119,11 @@ class HonestAgent(override val hashRate: Long, blockChain: Chain, val initData: 
 
             Type.ANSWER -> {
                 blockChain.answerData(message.data)
+                    .also {
+                        if (it == ChainAnswer.ACCEPT) {
+                            statistic.incrementForkCount(message.expiredTime.toInt())
+                        }
+                    }
             }
             else -> {
                 ChainAnswer.DECLINE

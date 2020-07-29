@@ -1,6 +1,7 @@
 package com.anton22255.blockchain
 
 import com.anton22255.Block
+import com.anton22255.Statistic
 import kotlin.math.min
 
 class IGBlockchain : Chain {

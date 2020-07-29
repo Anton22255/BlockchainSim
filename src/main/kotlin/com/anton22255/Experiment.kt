@@ -2,6 +2,7 @@ package com.anton22255
 
 import com.anton22255.agent.Agent
 import com.anton22255.blockchain.ChainType
+import com.anton22255.db.DataBase
 import com.anton22255.transport.Message
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
@@ -12,8 +13,9 @@ import kotlin.collections.HashMap
 
 class Experiment(val initData: InitData) {
 
+    val statisticResult = Statistic(initData.periodCount.toInt())
     val messageQueue = HashMap<Long, Queue<Message>>()
-    val populationUtils = PopulationUtils(initData)
+    val populationUtils = PopulationUtils(initData, statisticResult)
 
     fun startExperiment() {
         var population = populationUtils.initPopulation()
@@ -45,8 +47,13 @@ class Experiment(val initData: InitData) {
             processMessageCorutines(time, population)
 
             population = populationUtils.updatePopulation(population)
+
+
 //            println("population numbers " + population.size)
         }
+        DataBase().writeExperiment(StatisticResult(initData, statisticResult.forkCounters.map { it.toLong() }))
+
+
 
         println("time of processing ${System.currentTimeMillis() - timer} mls")
     }

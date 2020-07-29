@@ -1,6 +1,7 @@
 package com.anton22255.blockchain
 
 import com.anton22255.Block
+import com.anton22255.Statistic
 import com.anton22255.Transaction
 
 interface Chain {
@@ -36,5 +37,4 @@ fun createChain(type: ChainType) =
     when (type) {
         ChainType.ANT -> AntBlockChain()
         else -> IGBlockchain()
-
     }

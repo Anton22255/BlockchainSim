@@ -28,8 +28,7 @@ object Main {
     @JvmStatic
     fun main(args: Array<String>) {
 
-        DataBase()
-            .init()
+//        DataBase().init()
 
         val experiment = Experiment(
             initData = InitData(

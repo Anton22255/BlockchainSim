@@ -7,11 +7,12 @@ import com.anton22255.transport.Message
 import com.anton22255.transport.Type
 import kotlin.random.Random
 
-class PopulationUtils(val initData: InitData) {
+class PopulationUtils(val initData: InitData, val statistic: Statistic) {
 
     fun createAgent(): HonestAgent {
         val hashRate = Random.nextLong(initData.maxHashAgentRate)
-        return HonestAgent(hashRate, createChain(initData.chainType), initData)
+        val blockChain = createChain(initData.chainType)
+        return HonestAgent(hashRate, blockChain, initData, statistic)
     }
 
     fun initPopulation(): MutableList<Agent> {

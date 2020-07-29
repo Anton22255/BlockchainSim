@@ -1,6 +1,7 @@
 package com.anton22255.blockchain
 
 import com.anton22255.Block
+import com.anton22255.Statistic
 
 class AntBlockChain : Chain {
     private val blockPool = arrayListOf<Block>()
@@ -11,6 +12,7 @@ class AntBlockChain : Chain {
         mainBlocks.add(arrayListOf(createGenesisBlock()))
         endOfMainBranch = mainBlocks[0][0]
     }
+
 
     override fun getLastBlock() = endOfMainBranch
 
