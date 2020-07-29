@@ -1,6 +1,7 @@
 package com.anton22255.db
 
 
+import com.anton22255.InitData
 import com.anton22255.StatisticResult
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -31,12 +32,33 @@ class DataBase {
                 it[period] = statisticResult.initData.period
                 it[periodCount] = statisticResult.initData.periodCount
 
+                it[time] = statisticResult.time
                 it[status] = "OK"
                 it[result_fork] = statisticResult.forkCounters
             } get Experiments.id
 
         }
     }
+
+    fun experimentExist(initData: InitData): Boolean {
+        var exist = false
+        transaction {
+            addLogger(StdOutSqlLogger)
+            exist = (Experiments.exists() &&
+                    Experiments.select {
+                        (Experiments.diedAlpha eq initData.diedAlpha)
+                            .and(Experiments.liveAlpha eq initData.liveAlpha)
+                            .and(Experiments.initN eq initData.initN)
+                            .and(Experiments.sendBlockTime eq initData.sendBlockTime)
+                            .and(Experiments.sendTime eq initData.sendTime)
+                            .and(Experiments.period eq initData.period)
+                            .and(Experiments.periodCount eq initData.periodCount)
+                            .and(Experiments.chainType eq initData.chainType.name)
+                    }.toList().isNotEmpty())
+        }
+        return exist
+    }
+
 }
 
 object Experiments : Table() {
@@ -53,12 +75,14 @@ object Experiments : Table() {
     val liveAlpha = double("liveAlpha")
 
     val sendTime = integer("sendTime")
-    val sendBlockTime = integer("sendBlockTime")
+    val sendBlockTime = double("sendBlockTime")
 
     val period = integer("period")
     val periodCount = long("periodCount")
 
     val status = varchar("status", 50)
+
+    val time = long("time")
 
     val result_fork = arrayOfLong("result_fork")
 

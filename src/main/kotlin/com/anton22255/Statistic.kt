@@ -14,5 +14,6 @@ class Statistic(periodCount: Int) {
 
 data class StatisticResult(
     val initData: InitData,
+    val time: Long,
     val forkCounters: List<Long>
 )

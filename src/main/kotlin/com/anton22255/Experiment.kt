@@ -4,6 +4,7 @@ import com.anton22255.agent.Agent
 import com.anton22255.blockchain.ChainType
 import com.anton22255.db.DataBase
 import com.anton22255.transport.Message
+import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
 import kotlinx.coroutines.runBlocking
@@ -11,25 +12,25 @@ import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.collections.HashMap
 
-class Experiment(val initData: InitData) {
+class Experiment(val initData: InitData, val fixedThreadPoolContext : ExecutorCoroutineDispatcher) {
 
     val statisticResult = Statistic(initData.periodCount.toInt())
     val messageQueue = HashMap<Long, Queue<Message>>()
     val populationUtils = PopulationUtils(initData, statisticResult)
 
-    fun startExperiment() {
+    fun startExperiment(): StatisticResult {
         var population = populationUtils.initPopulation()
 
-        print(population.size)
-        println()
+//        print(population.size)
+//        println()
 
         val timer = System.currentTimeMillis()
 
         (1..initData.periodCount).forEach { time ->
-            if (time.rem(10) == 0L) {
-                println("time $time")
-                println("time of processing ${System.currentTimeMillis() - timer} mls")
-            }
+//            if (time.rem(10) == 0L) {
+//                println("time $time")
+//                println("time of processing ${System.currentTimeMillis() - timer} mls")
+//            }
             val transactionMessages = populationUtils.generateTransactions(population, time)
             addMessages(time, transactionMessages)
 
@@ -51,11 +52,9 @@ class Experiment(val initData: InitData) {
 
 //            println("population numbers " + population.size)
         }
-        DataBase().writeExperiment(StatisticResult(initData, statisticResult.forkCounters.map { it.toLong() }))
-
-
-
-        println("time of processing ${System.currentTimeMillis() - timer} mls")
+        val time = System.currentTimeMillis() - timer
+        println("time of processing $time mls")
+        return StatisticResult(initData, time, statisticResult.forkCounters.map { it.toLong() })
     }
 
     private fun addMessages(time: Long, messages: List<Message>) {
@@ -70,8 +69,6 @@ class Experiment(val initData: InitData) {
         time: Long,
         population: MutableList<Agent>
     ) {
-
-        val fixedThreadPoolContext = newFixedThreadPoolContext(10, "background")
 
         runBlocking<Unit>(fixedThreadPoolContext) {
             val jobs = messageQueue[time]?.map { message ->
@@ -95,7 +92,7 @@ data class InitData(
     val liveAlpha: Double = 0.02,
 
     val sendTime: Int = 3,
-    val sendBlockTime: Int = 3,
+    val sendBlockTime: Double = 3.0,
 
     val period: Int = 10,
     val periodCount: Long = 100
