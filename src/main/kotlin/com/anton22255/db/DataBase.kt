@@ -43,7 +43,7 @@ class DataBase {
     fun experimentExist(initData: InitData): Boolean {
         var exist = false
         transaction {
-            addLogger(StdOutSqlLogger)
+//            addLogger(StdOutSqlLogger)
             exist = (Experiments.exists() &&
                     Experiments.select {
                         (Experiments.diedAlpha eq initData.diedAlpha)
@@ -54,6 +54,7 @@ class DataBase {
                             .and(Experiments.period eq initData.period)
                             .and(Experiments.periodCount eq initData.periodCount)
                             .and(Experiments.chainType eq initData.chainType.name)
+                            .and(Experiments.channelMinCount eq initData.channelMinCount)
                     }.toList().isNotEmpty())
         }
         return exist

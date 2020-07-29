@@ -6,6 +6,7 @@ import com.anton22255.transport.Message
 import kotlinx.coroutines.newFixedThreadPoolContext
 import java.util.*
 import kotlin.collections.HashMap
+import kotlin.math.sign
 
 object Main {
 
@@ -33,38 +34,54 @@ object Main {
         val newFixedThreadPoolContext = newFixedThreadPoolContext(10, "background")
         for (chainType in ChainType.values()) {
 
-            for (diedAlpha in (1..50).map { it / 100.0 }) {
-                for (liveAlpha in (1..50).map { it / 100.0 }) {
-                    for (sendTime in (1..5)) {
-                        for (sendBlockTime in arrayOf(1.0, 1.5, 2.0, 2.5)) {
+            val alphaVariants = (1..50).map { it / 100.0 }
+            val liveAlphaVariants = (1..50).map { it / 100.0 }
+            val sendTimeRange = 1..5
+            val sendBlockTimeRange = arrayOf(1.0, 1.5, 2.0, 2.5)
+            val channelsRange = arrayOf(100, 1000, 2000, 5000, 8000, 10000)
 
-                            val initData = InitData(
-                                period = 10,
-                                periodCount = 100,
-                                transactionInOneRound = 1000,
-                                initN = 10000,
-                                channelMinCount = 20,
-                                maxHashAgentRate = 10000L,
-                                chainType = chainType,
+            var counter = 1;
+            val countAllVariants =
+                alphaVariants.size * liveAlphaVariants.size * sendBlockTimeRange.size * sendTimeRange.count()*channelsRange.count()
 
-                                diedAlpha = diedAlpha,
-                                liveAlpha = liveAlpha,
+            for (diedAlpha in alphaVariants) {
+                for (liveAlpha in liveAlphaVariants) {
+                    for (sendTime in sendTimeRange) {
+                        for (sendBlockTime in sendBlockTimeRange) {
 
-                                sendTime = sendTime,
-                                sendBlockTime = sendBlockTime
-                            )
-
-                            if (!dataBase.experimentExist(initData)) {
-
-                                val experiment = Experiment(
-                                    initData = initData,
-                                    fixedThreadPoolContext = newFixedThreadPoolContext
+                            for (channelsCount in channelsRange) {
+                                println(
+                                    "$counter/$countAllVariants  (${
+                                    "%.3f".format(counter.toDouble().div(countAllVariants).times(100))})"
                                 )
-                                val startExperiment = experiment.startExperiment()
-                                dataBase.writeExperiment(startExperiment)
-                            }
-                        }
 
+                                counter++
+                                val initData = InitData(
+                                    period = 10,
+                                    periodCount = 100,
+                                    transactionInOneRound = 1000,
+                                    initN = 10000,
+                                    channelMinCount = channelsCount,
+                                    maxHashAgentRate = 10000L,
+                                    chainType = chainType,
+                                    diedAlpha = diedAlpha,
+                                    liveAlpha = liveAlpha,
+                                    sendTime = sendTime,
+                                    sendBlockTime = sendBlockTime
+                                )
+
+                                if (!dataBase.experimentExist(initData)) {
+
+                                    val experiment = Experiment(
+                                        initData = initData,
+                                        fixedThreadPoolContext = newFixedThreadPoolContext
+                                    )
+                                    val startExperiment = experiment.startExperiment()
+                                    dataBase.writeExperiment(startExperiment)
+                                }
+                            }
+
+                        }
                     }
                 }
             }
