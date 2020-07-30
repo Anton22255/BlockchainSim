@@ -55,6 +55,8 @@ class DataBase {
                             .and(Experiments.periodCount eq initData.periodCount)
                             .and(Experiments.chainType eq initData.chainType.name)
                             .and(Experiments.channelMinCount eq initData.channelMinCount)
+                            .and(Experiments.initN eq initData.initN)
+
                     }.toList().isNotEmpty())
         }
         return exist

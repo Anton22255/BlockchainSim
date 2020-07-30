@@ -11,18 +11,20 @@ class IGBlockchain : Chain {
     override fun getLastBlock(): Block = mainBlocks.last()
 
     override fun addBlock(block: Block): ChainAnswer {
+        synchronized(this) {
 
-        return if (block.depth <= getLastBlock().depth) {
-            ChainAnswer.DECLINE
-        } else {
-            if (block.prevHash == getLastBlock().calculateHash()) {
-                mainBlocks.add(block)
-                ChainAnswer.ACCEPT.apply {
-                    data = block
-                }
+            return if (block.depth <= getLastBlock().depth) {
+                ChainAnswer.DECLINE
             } else {
-                ChainAnswer.REQUEST.apply {
-                    data = mainBlocks.map { it.calculateHash() }.toList()
+                if (block.prevHash == getLastBlock().calculateHash()) {
+                    mainBlocks.add(block)
+                    ChainAnswer.ACCEPT.apply {
+                        data = block
+                    }
+                } else {
+                    ChainAnswer.REQUEST.apply {
+                        data = mainBlocks.map { it.calculateHash() }.toList()
+                    }
                 }
             }
         }

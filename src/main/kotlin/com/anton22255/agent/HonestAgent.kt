@@ -72,7 +72,7 @@ class HonestAgent(
                 chainAnswer,
                 message,
                 Type.ANSWER,
-                (initData.sendTime + initData.sendBlockTime * ((chainAnswer.data as? List<*>)?.size ?: 0)).toInt()
+                (initData.sendTime + initData.sendBlockTime * ((chainAnswer.data as? List<*>)?.size?.toDouble() ?: 0.0)).toInt()
             )
         }
 

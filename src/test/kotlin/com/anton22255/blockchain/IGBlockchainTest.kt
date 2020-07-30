@@ -17,6 +17,32 @@ internal class IGBlockchainTest {
     }
 
     @Test
+    fun addBlock() {
+        val lastBlock = blockChain.getLastBlock()
+        val block1 = Block(arrayListOf(Transaction()), lastBlock)
+        val block2 = Block(arrayListOf(Transaction()), block1)
+        val block3 = Block(arrayListOf(Transaction()), block2)
+
+        blockChain.addBlock(block1)
+        blockChain.addBlock(block2)
+//        blockChain.addBlock(block3)
+
+        val block2_1 = Block(arrayListOf(Transaction()), block1)
+        val block3_1 = Block(arrayListOf(Transaction()), block2_1)
+        val block4_1 = Block(arrayListOf(Transaction()), block3_1)
+
+
+        val chainAnswer = blockChain.addBlock(block4_1)
+        assertEquals(ChainAnswer.REQUEST.name, chainAnswer.name)
+
+        val result = (chainAnswer.data as ArrayList<String>)
+        assertEquals(
+            result,
+            blockChain.mainBlocks.map { it.calculateHash() }
+        )
+    }
+
+    @Test
     fun answerData() {
 
         val lastBlock = blockChain.getLastBlock()

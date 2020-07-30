@@ -4,18 +4,6 @@ import com.anton22255.agent.Agent
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
-fun choseLuckyAgents(agentProbabilities: List<Double>, periodProbability: Double): ArrayList<Int> {
-    val random = Random
-    val agents = ArrayList<Int>()
-    agentProbabilities.forEachIndexed { index, probability ->
-        if (random.nextDouble(0.0, periodProbability) <= probability) {
-            agents.add(index)
-        }
-    }
-    return agents
-}
-
-
 fun choseLuckyAgents(agentHashRates: List<Long>, period: Int): ArrayList<Int> {
     val random = Random
     val agents = ArrayList<Int>()

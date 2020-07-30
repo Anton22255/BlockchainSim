@@ -27,12 +27,11 @@ class PopulationUtils(val initData: InitData, val statistic: Statistic) {
         population.removeAll(selectPopulation)
         removeChannels(population, selectPopulation)
 
-        val burnAdditionalPopulation = addPopulation(initData.liveAlpha, populationSize) {
-            createAgent()
-        }
+        val burnAdditionalPopulation = addPopulation(initData.liveAlpha, populationSize) { createAgent() }
 
         population.addAll(burnAdditionalPopulation)
         initChannels(population, initData.channelMinCount)
+
         return population
     }
 

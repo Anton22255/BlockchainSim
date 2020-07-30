@@ -32,17 +32,29 @@ object Main {
     fun main(args: Array<String>) {
 
         val newFixedThreadPoolContext = newFixedThreadPoolContext(10, "background")
-        for (chainType in ChainType.values()) {
+        val alphaVariants
+//                = arrayOf(0.02)
+                = (1..5).map { it / 100.0 }
+        val liveAlphaVariants
+//                = arrayOf(0.05)
+                = (1..5).map { it / 100.0 }
+        val sendTimeRange
+//                = arrayOf(2)
+                = 1..5
+        val sendBlockTimeRange
+//                = arrayOf(0.1)
+                = arrayOf(1.0, 1.5, 2.0, 2.5)
+        val channelsRange = arrayOf(200, 500, 900)
+//                    = arrayOf(100, 1000, 2000, 5000, 8000, 10000)
+        val arrayOfChainTypes
+//                = arrayListOf(ChainType.IG)
+                = ChainType.values()
 
-            val alphaVariants = (1..50).map { it / 100.0 }
-            val liveAlphaVariants = (1..50).map { it / 100.0 }
-            val sendTimeRange = 1..5
-            val sendBlockTimeRange = arrayOf(1.0, 1.5, 2.0, 2.5)
-            val channelsRange = arrayOf(100, 1000, 2000, 5000, 8000, 10000)
+        var counter = 1;
+        val countAllVariants =
+            arrayOfChainTypes.size * alphaVariants.size * liveAlphaVariants.size * sendBlockTimeRange.size * sendTimeRange.count() * channelsRange.count()
 
-            var counter = 1;
-            val countAllVariants =
-                alphaVariants.size * liveAlphaVariants.size * sendBlockTimeRange.size * sendTimeRange.count()*channelsRange.count()
+        for (chainType in arrayOfChainTypes) {
 
             for (diedAlpha in alphaVariants) {
                 for (liveAlpha in liveAlphaVariants) {
@@ -58,9 +70,9 @@ object Main {
                                 counter++
                                 val initData = InitData(
                                     period = 10,
-                                    periodCount = 100,
+                                    periodCount = 31,
                                     transactionInOneRound = 1000,
-                                    initN = 10000,
+                                    initN = 1000,
                                     channelMinCount = channelsCount,
                                     maxHashAgentRate = 10000L,
                                     chainType = chainType,

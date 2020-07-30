@@ -21,16 +21,9 @@ class Experiment(val initData: InitData, val fixedThreadPoolContext : ExecutorCo
     fun startExperiment(): StatisticResult {
         var population = populationUtils.initPopulation()
 
-//        print(population.size)
-//        println()
-
         val timer = System.currentTimeMillis()
 
         (1..initData.periodCount).forEach { time ->
-//            if (time.rem(10) == 0L) {
-//                println("time $time")
-//                println("time of processing ${System.currentTimeMillis() - timer} mls")
-//            }
             val transactionMessages = populationUtils.generateTransactions(population, time)
             addMessages(time, transactionMessages)
 
@@ -48,9 +41,6 @@ class Experiment(val initData: InitData, val fixedThreadPoolContext : ExecutorCo
             processMessageCorutines(time, population)
 
             population = populationUtils.updatePopulation(population)
-
-
-//            println("population numbers " + population.size)
         }
         val time = System.currentTimeMillis() - timer
         println("time of processing $time mls")
