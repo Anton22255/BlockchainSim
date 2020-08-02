@@ -111,7 +111,6 @@ class AntBlockChain : Chain {
             prevBlock = prevBlock.prevBlock
 
         }
-
         return resultList.reversed().map { block -> block.calculateHash() }
     }
 }

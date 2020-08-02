@@ -13,7 +13,7 @@ import kotlin.random.Random
 class PopulationUtils(val initData: InitData, val statistic: Statistic) {
 
     fun createAgent(): HonestAgent {
-        val hashRate = Random.nextLong(initData.maxHashAgentRate)
+        val hashRate = Random.nextLong(initData.minHashAgentRate, initData.maxHashAgentRate)
         val blockChain = createChain(initData.chainType)
         return HonestAgent(hashRate, blockChain, initData, statistic)
     }
@@ -80,9 +80,15 @@ class PopulationUtils(val initData: InitData, val statistic: Statistic) {
 
     fun compareChains(population: MutableList<Agent>): Int {
 
-        val mainVersion = population.first().blockChain.getMainVersion()
-        val list = population.fold(mainVersion) { acc, item -> commonPart(acc, item.blockChain.getMainVersion()) }
+        return compareChains1(population.map { it.blockChain.getMainVersion() })
+    }
 
+    fun compareChains1(chains: List<List<String>>): Int {
+
+        println(" ============  ")
+        println(chains.first())
+        val list = chains.fold(chains.first()) { acc, item -> commonPart(acc, item) }
+        println(list.joinToString())
         return list.size
     }
 
@@ -90,12 +96,14 @@ class PopulationUtils(val initData: InitData, val statistic: Statistic) {
     fun commonPart(partA: List<String>, partB: List<String>): List<String> {
         val result = ArrayList<String>()
         for (i in 0 until (min(partA.size, partB.size))) {
-            if (partA[i] == partB[i]) {
+            if (partA[i].contentEquals(partB[i])) {
                 result.add(partA[i])
             } else {
                 return result
             }
         }
+        println(partB)
+//        print( " $result")
         return result
     }
 }

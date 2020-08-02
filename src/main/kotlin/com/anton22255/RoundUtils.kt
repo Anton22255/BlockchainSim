@@ -13,7 +13,7 @@ fun choseLuckyAgents(agentHashRates: List<Long>, period: Int): ArrayList<Int> {
         rate.toDouble().div(sumHashRate).div(period)
     }
         .forEachIndexed { index, probability ->
-            if (random.nextDouble(0.0, until).compareTo(probability) <=0 ) {
+            if (random.nextDouble(0.0, until).compareTo(probability) <= 0) {
                 agents.add(index)
             }
         }
@@ -36,7 +36,8 @@ fun initChannels(agents: List<Agent>, linkCount: Int) {
     agents.forEachIndexed { index, agent ->
         while (agent.channels.size < linkCount) {
             val indexOfChannel = Random.nextInt(agents.size)
-            if (index != indexOfChannel) {
+            val notContain = agent.channels.filter { it.id.contentEquals(agents[indexOfChannel].id) }.isEmpty()
+            if (index != indexOfChannel && notContain) {
                 agent.addChanel(agents[indexOfChannel])
             }
         }

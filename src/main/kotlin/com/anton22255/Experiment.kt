@@ -27,7 +27,13 @@ class Experiment(val initData: InitData, val fixedThreadPoolContext: ExecutorCor
             val transactionMessages = populationUtils.generateTransactions(population, time)
             addMessages(time, transactionMessages)
 
+
             val choseLuckyAgents = choseLuckyAgents(population.map { it.hashRate }.toList(), initData.period)
+            if (time.rem(10) == 0L) {
+                println("time : $time; size :  ${population.size} ")
+                println( choseLuckyAgents.joinToString())
+            }
+
             populationUtils.createMinerBlocks(choseLuckyAgents, population, time)
 
             population.forEach {
@@ -40,7 +46,9 @@ class Experiment(val initData: InitData, val fixedThreadPoolContext: ExecutorCor
 
             processMessageCorutines(time, population)
 
-            statisticResult.setCommonNumber(populationUtils.compareChains(population))
+            statisticResult.setCommonNumber(
+                populationUtils.compareChains(population)
+            )
             population = populationUtils.updatePopulation(population)
         }
         val time = System.currentTimeMillis() - timer
@@ -80,6 +88,8 @@ data class InitData(
     val initN: Int = 1000,
     val channelMinCount: Int = 20,
     val maxHashAgentRate: Long = 10000L,
+    val minHashAgentRate: Long = 100L,
+
     val chainType: ChainType = ChainType.ANT,
 
     val diedAlpha: Double = 0.01,

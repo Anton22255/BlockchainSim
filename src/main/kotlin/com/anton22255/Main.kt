@@ -32,22 +32,17 @@ object Main {
     fun main(args: Array<String>) {
 
         val newFixedThreadPoolContext = newFixedThreadPoolContext(10, "background")
-        val alphaVariants
-                = arrayOf(0.02)
+        val alphaVariants = arrayOf(0.000)
 //                = (1..5).map { it / 100.0 }
-        val liveAlphaVariants
-                = arrayOf(0.05)
+        val liveAlphaVariants = arrayOf(0.00)
 //                = (1..5).map { it / 100.0 }
-        val sendTimeRange
-                = arrayOf(2)
+        val sendTimeRange = arrayOf(1)
 //                = 1..5
-        val sendBlockTimeRange
-                = arrayOf(0.1)
+        val sendBlockTimeRange = arrayOf(0.1)
 //                = arrayOf(1.0, 1.5, 2.0, 2.5)
-        val channelsRange = arrayOf(200, 500, 900)
+        val channelsRange = arrayOf(9)
 //                    = arrayOf(100, 1000, 2000, 5000, 8000, 10000)
-        val arrayOfChainTypes
-                = arrayListOf(ChainType.ANT)
+        val arrayOfChainTypes = arrayListOf(ChainType.ANT)
 //                = ChainType.values()
 
         var counter = 1;
@@ -69,12 +64,13 @@ object Main {
 
                                 counter++
                                 val initData = InitData(
-                                    period = 10,
-                                    periodCount = 31,
+                                    period = 2,
+                                    periodCount = 50,
                                     transactionInOneRound = 1000,
-                                    initN = 1000,
+                                    initN = 10,
                                     channelMinCount = channelsCount,
                                     maxHashAgentRate = 10000L,
+                                    minHashAgentRate = 10000L-1,
                                     chainType = chainType,
                                     diedAlpha = diedAlpha,
                                     liveAlpha = liveAlpha,
