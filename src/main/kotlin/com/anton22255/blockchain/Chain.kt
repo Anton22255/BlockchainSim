@@ -15,6 +15,8 @@ interface Chain {
     fun answerData(answer: Any): ChainAnswer
 
     fun copy(): Chain
+
+    fun getMainVersion(): List<String>
 }
 
 fun createGenesisBlock() = Block(listOf(Transaction()))

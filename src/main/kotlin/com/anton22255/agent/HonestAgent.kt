@@ -16,8 +16,7 @@ class HonestAgent(
     blockChain: Chain,
     val initData: InitData,
     val statistic: Statistic
-) :
-    Agent {
+) : Agent {
     override val id: String = UUID.randomUUID().toString()
     override val channels = ArrayList<Agent>()
     override var blockChain: Chain = blockChain
@@ -40,8 +39,8 @@ class HonestAgent(
     override fun receiveMessage(message: Message) {
         //parse message
 
-        val chainAnswer = processMessage(message)
-        when (Pair(message.type, chainAnswer)) {
+        val answer = processMessage(message)
+        when (Pair(message.type, answer)) {
             Type.TRANSACTION, ChainAnswer.ACCEPT -> {
                 sendMessageToChannels(
                     (message.data as Transaction).copy(),
@@ -60,7 +59,7 @@ class HonestAgent(
             ChainAnswer.REQUEST -> messagesForSending.add(
                 Message(
                     Type.REQUEST,
-                    chainAnswer.data,
+                    answer.data,
                     id,
                     message.senderId,
                     message.expiredTime,
@@ -69,10 +68,11 @@ class HonestAgent(
             )
 
             ChainAnswer.ANSWER -> sendMessage(
-                chainAnswer,
+                answer,
                 message,
                 Type.ANSWER,
-                (initData.sendTime + initData.sendBlockTime * ((chainAnswer.data as? List<*>)?.size?.toDouble() ?: 0.0)).toInt()
+                (initData.sendTime + initData.sendBlockTime * ((answer.data as? List<*>)?.size?.toDouble()
+                    ?: 0.0)).toInt()
             )
         }
 

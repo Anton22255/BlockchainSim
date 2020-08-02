@@ -7,6 +7,7 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 
 class DataBase {
+
     val database = Database.connect(
         "jdbc:postgresql://localhost:5432/postgres", driver = "org.postgresql.Driver",
         user = "postgres"
@@ -35,6 +36,8 @@ class DataBase {
                 it[time] = statisticResult.time
                 it[status] = "OK"
                 it[result_fork] = statisticResult.forkCounters
+                it[result_common_head] = statisticResult.tailCounters
+                it[version] = Companion.version
             } get Experiments.id
 
         }
@@ -43,7 +46,7 @@ class DataBase {
     fun experimentExist(initData: InitData): Boolean {
         var exist = false
         transaction {
-//            addLogger(StdOutSqlLogger)
+            //            addLogger(StdOutSqlLogger)
             exist = (Experiments.exists() &&
                     Experiments.select {
                         (Experiments.diedAlpha eq initData.diedAlpha)
@@ -56,10 +59,15 @@ class DataBase {
                             .and(Experiments.chainType eq initData.chainType.name)
                             .and(Experiments.channelMinCount eq initData.channelMinCount)
                             .and(Experiments.initN eq initData.initN)
+                            .and(Experiments.version lessEq  version)
 
                     }.toList().isNotEmpty())
         }
         return exist
+    }
+
+    companion object {
+        val version = 2
     }
 
 }
@@ -85,8 +93,11 @@ object Experiments : Table() {
 
     val status = varchar("status", 50)
 
+    val version = integer("version")
+
     val time = long("time")
 
     val result_fork = arrayOfLong("result_fork")
+    val result_common_head = arrayOfLong("result_common_head")
 
 }

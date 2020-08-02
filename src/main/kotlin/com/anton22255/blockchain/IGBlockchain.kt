@@ -58,6 +58,8 @@ class IGBlockchain : Chain {
         return ChainAnswer.DECLINE
     }
 
+    override fun getMainVersion(): List<String> = mainBlocks.map { it.calculateHash() }
+
     override fun copy(): Chain =
         IGBlockchain().apply {
             mainBlocks.clear()

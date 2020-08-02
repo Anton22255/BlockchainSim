@@ -5,6 +5,9 @@ import com.anton22255.agent.HonestAgent
 import com.anton22255.blockchain.createChain
 import com.anton22255.transport.Message
 import com.anton22255.transport.Type
+import java.util.Collections.max
+import java.util.Collections.min
+import kotlin.math.min
 import kotlin.random.Random
 
 class PopulationUtils(val initData: InitData, val statistic: Statistic) {
@@ -75,5 +78,24 @@ class PopulationUtils(val initData: InitData, val statistic: Statistic) {
         }?.receiveMessage(message)
     }
 
+    fun compareChains(population: MutableList<Agent>): Int {
 
+        val mainVersion = population.first().blockChain.getMainVersion()
+        val list = population.fold(mainVersion) { acc, item -> commonPart(acc, item.blockChain.getMainVersion()) }
+
+        return list.size
+    }
+
+
+    fun commonPart(partA: List<String>, partB: List<String>): List<String> {
+        val result = ArrayList<String>()
+        for (i in 0 until (min(partA.size, partB.size))) {
+            if (partA[i] == partB[i]) {
+                result.add(partA[i])
+            } else {
+                return result
+            }
+        }
+        return result
+    }
 }

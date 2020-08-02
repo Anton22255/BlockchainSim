@@ -12,7 +12,7 @@ import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.collections.HashMap
 
-class Experiment(val initData: InitData, val fixedThreadPoolContext : ExecutorCoroutineDispatcher) {
+class Experiment(val initData: InitData, val fixedThreadPoolContext: ExecutorCoroutineDispatcher) {
 
     val statisticResult = Statistic(initData.periodCount.toInt())
     val messageQueue = HashMap<Long, Queue<Message>>()
@@ -40,11 +40,15 @@ class Experiment(val initData: InitData, val fixedThreadPoolContext : ExecutorCo
 
             processMessageCorutines(time, population)
 
+            statisticResult.setCommonNumber(populationUtils.compareChains(population))
             population = populationUtils.updatePopulation(population)
         }
         val time = System.currentTimeMillis() - timer
         println("time of processing $time mls")
-        return StatisticResult(initData, time, statisticResult.forkCounters.map { it.toLong() })
+        return StatisticResult(
+            initData, time, statisticResult.forkCounters.map { it.toLong() },
+            statisticResult.tailCounters
+        )
     }
 
     private fun addMessages(time: Long, messages: List<Message>) {

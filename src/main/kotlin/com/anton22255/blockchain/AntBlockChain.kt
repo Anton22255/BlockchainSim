@@ -101,4 +101,17 @@ class AntBlockChain : Chain {
     fun findMainBranch() {
         endOfMainBranch = mainBlocks.last().first()
     }
+
+    override fun getMainVersion(): List<String> {
+
+        val resultList = arrayListOf(endOfMainBranch)
+        var prevBlock = endOfMainBranch.prevBlock
+        while (prevBlock != null) {
+            resultList.add(prevBlock)
+            prevBlock = prevBlock.prevBlock
+
+        }
+
+        return resultList.reversed().map { block -> block.calculateHash() }
+    }
 }

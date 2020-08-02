@@ -33,22 +33,22 @@ object Main {
 
         val newFixedThreadPoolContext = newFixedThreadPoolContext(10, "background")
         val alphaVariants
-//                = arrayOf(0.02)
-                = (1..5).map { it / 100.0 }
+                = arrayOf(0.02)
+//                = (1..5).map { it / 100.0 }
         val liveAlphaVariants
-//                = arrayOf(0.05)
-                = (1..5).map { it / 100.0 }
+                = arrayOf(0.05)
+//                = (1..5).map { it / 100.0 }
         val sendTimeRange
-//                = arrayOf(2)
-                = 1..5
+                = arrayOf(2)
+//                = 1..5
         val sendBlockTimeRange
-//                = arrayOf(0.1)
-                = arrayOf(1.0, 1.5, 2.0, 2.5)
+                = arrayOf(0.1)
+//                = arrayOf(1.0, 1.5, 2.0, 2.5)
         val channelsRange = arrayOf(200, 500, 900)
 //                    = arrayOf(100, 1000, 2000, 5000, 8000, 10000)
         val arrayOfChainTypes
-//                = arrayListOf(ChainType.IG)
-                = ChainType.values()
+                = arrayListOf(ChainType.ANT)
+//                = ChainType.values()
 
         var counter = 1;
         val countAllVariants =
