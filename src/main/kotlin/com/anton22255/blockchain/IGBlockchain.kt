@@ -30,14 +30,16 @@ class IGBlockchain : Chain {
         }
     }
 
-    override fun requestData(request: Any): ChainAnswer =
-        (request as? List<String>)?.let { hashes ->
+    override fun requestData(request: Any): ChainAnswer {
+        val firstDif = (request as? List<String>)?.let { hashes ->
+            findFirstDifIndex(hashes, mainBlocks.map { it.calculateHash() })
+        } ?: 1
+        return ChainAnswer.ANSWER.apply { data = mainBlocks.subList(firstDif, mainBlocks.size) }
+    }
 
-            val firstDif = (0 until min(hashes.size, mainBlocks.size))
-                .first { hashes[it] != mainBlocks[it].calculateHash() }
-            return ChainAnswer.ANSWER.apply { mainBlocks.subList(firstDif, mainBlocks.lastIndex) }
-        }
-            ?: ChainAnswer.ANSWER.apply { mainBlocks.subList(1, mainBlocks.lastIndex) }
+    fun findFirstDifIndex(hashes: List<String>, hashes2: List<String>) =
+        (0 until min(hashes.size, hashes2.size))
+            .firstOrNull { !hashes[it].contentEquals(hashes2[it]) } ?: hashes.lastIndex
 
     override fun answerData(answer: Any): ChainAnswer {
 

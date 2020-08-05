@@ -15,6 +15,7 @@ import kotlin.collections.HashMap
 class Experiment(val initData: InitData, val fixedThreadPoolContext: ExecutorCoroutineDispatcher) {
 
     val statisticResult = Statistic(initData.periodCount.toInt())
+    val expendedStatistic: ExpendedStatistic = ExpendedStatistic()
     val messageQueue = HashMap<Long, Queue<Message>>()
     val populationUtils = PopulationUtils(initData, statisticResult)
 
@@ -31,7 +32,7 @@ class Experiment(val initData: InitData, val fixedThreadPoolContext: ExecutorCor
             val choseLuckyAgents = choseLuckyAgents(population.map { it.hashRate }.toList(), initData.period)
             if (time.rem(10) == 0L) {
                 println("time : $time; size :  ${population.size} ")
-                println( choseLuckyAgents.joinToString())
+//                println( choseLuckyAgents.joinToString())
             }
 
             populationUtils.createMinerBlocks(choseLuckyAgents, population, time)
@@ -49,10 +50,21 @@ class Experiment(val initData: InitData, val fixedThreadPoolContext: ExecutorCor
             statisticResult.setCommonNumber(
                 populationUtils.compareChains(population)
             )
+
+            if (initData.needExpendedStatistic) {
+                expendedStatistic.resultMatrix
+                    .add(populationUtils.headStatistics(population.map { it.blockChain.getMainVersion() }))
+            }
+
             population = populationUtils.updatePopulation(population)
         }
         val time = System.currentTimeMillis() - timer
         println("time of processing $time mls")
+
+        if (initData.needExpendedStatistic) {
+            writeStatistics(initData, expendedStatistic)
+        }
+
         return StatisticResult(
             initData, time, statisticResult.forkCounters.map { it.toLong() },
             statisticResult.tailCounters
@@ -99,5 +111,12 @@ data class InitData(
     val sendBlockTime: Double = 3.0,
 
     val period: Int = 10,
-    val periodCount: Long = 100
-)
+    val periodCount: Long = 100,
+
+    val needExpendedStatistic: Boolean = false
+
+) {
+    fun toString1(): String {
+        return "$transactionInOneRound,$initN,$channelMinCount,$maxHashAgentRate,$minHashAgentRate,$chainType,=$diedAlpha,=$liveAlpha,=$sendTime,=$sendBlockTime,=$period,=$periodCount,=$needExpendedStatistic"
+    }
+}

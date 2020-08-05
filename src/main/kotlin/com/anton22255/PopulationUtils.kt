@@ -7,6 +7,7 @@ import com.anton22255.transport.Message
 import com.anton22255.transport.Type
 import java.util.Collections.max
 import java.util.Collections.min
+import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.min
 import kotlin.random.Random
 
@@ -86,23 +87,38 @@ class PopulationUtils(val initData: InitData, val statistic: Statistic) {
     fun compareChains1(chains: List<List<String>>): Int {
 
         println(" ============  ")
-        println(chains.first())
+//        println(chains.first())
         val list = chains.fold(chains.first()) { acc, item -> commonPart(acc, item) }
         println(list.joinToString())
         return list.size
     }
 
+    fun headStatistics(chains: List<List<String>>): Array<Int> {
+
+        val result: Array<Int> = Array(chains.size * (chains.size - 1) / 2) { 0 }
+
+        var index = 0
+        for (i in 0 until (chains.size - 1)) {
+            for (j in i + 1 until chains.size) {
+                val part = commonPart(chains[i], chains[j])
+                result[index] = part.size
+                index++
+            }
+        }
+        return result
+    }
 
     fun commonPart(partA: List<String>, partB: List<String>): List<String> {
         val result = ArrayList<String>()
+        println(partB)
         for (i in 0 until (min(partA.size, partB.size))) {
             if (partA[i].contentEquals(partB[i])) {
                 result.add(partA[i])
             } else {
+
                 return result
             }
         }
-        println(partB)
 //        print( " $result")
         return result
     }

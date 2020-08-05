@@ -20,5 +20,8 @@ data class StatisticResult(
     val time: Long,
     val forkCounters: List<Long>,
     val tailCounters: List<Long>
+)
 
+data class ExpendedStatistic(
+    var resultMatrix: MutableList<Array<Int>> = arrayListOf()
 )
