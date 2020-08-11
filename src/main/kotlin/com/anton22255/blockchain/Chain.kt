@@ -5,6 +5,7 @@ import com.anton22255.Statistic
 import com.anton22255.Transaction
 
 interface Chain {
+    var statistic : Statistic
 
     fun getLastBlock(): Block
 

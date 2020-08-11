@@ -15,7 +15,7 @@ object Main {
     private const val periodCount: Long = 101
 
     const val transactionInOneRound: Int = 1001
-    const val initN = 100
+    const val initN = 55
     const val channelMinCount = 20
     const val maxHashAgentRate = 10000L
     val chainType = ChainType.ANT

@@ -1,9 +1,11 @@
 package com.anton22255.blockchain
 
 import com.anton22255.Block
+import com.anton22255.Statistic
 import kotlin.math.min
 
 class IGBlockchain : Chain {
+    override lateinit var statistic: Statistic
 
     val mainBlocks: MutableList<Block> = arrayListOf(createGenesisBlock())
 

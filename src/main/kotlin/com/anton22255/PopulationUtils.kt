@@ -5,9 +5,6 @@ import com.anton22255.agent.HonestAgent
 import com.anton22255.blockchain.createChain
 import com.anton22255.transport.Message
 import com.anton22255.transport.Type
-import java.util.Collections.max
-import java.util.Collections.min
-import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.min
 import kotlin.random.Random
 

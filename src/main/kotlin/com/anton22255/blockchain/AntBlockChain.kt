@@ -3,10 +3,13 @@ package com.anton22255.blockchain
 import com.anton22255.Block
 import com.anton22255.Statistic
 
-class AntBlockChain : Chain {
+class AntBlockChain() : Chain {
     private val blockPool = arrayListOf<Block>()
     private val mainBlocks: ArrayList<MutableList<Block>> = ArrayList()
     private var endOfMainBranch: Block
+    override lateinit var statistic: Statistic
+
+    var hasForkOnAction = false
 
     init {
         mainBlocks.add(arrayListOf(createGenesisBlock()))
@@ -18,6 +21,7 @@ class AntBlockChain : Chain {
 
     override fun addBlock(block: Block): ChainAnswer {
 
+        hasForkOnAction = false
         val result = addToTree(block)
         if (result == ChainAnswer.ACCEPT) {
             processPool(block)
@@ -71,6 +75,11 @@ class AntBlockChain : Chain {
             ChainAnswer.DECLINE
         } else {
             blocks?.add(block) ?: mainBlocks.add(arrayListOf(block))
+
+            if (blocks?.size ?: 0 > 1 && blocks?.count { it.prevHash == block.prevHash } ?: 0 > 1) {
+                hasForkOnAction = true
+            }
+
             processPool(block)
             ChainAnswer.ACCEPT
         }

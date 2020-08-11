@@ -4,6 +4,7 @@ import com.anton22255.Block
 import com.anton22255.InitData
 import com.anton22255.Statistic
 import com.anton22255.Transaction
+import com.anton22255.blockchain.AntBlockChain
 import com.anton22255.blockchain.Chain
 import com.anton22255.blockchain.ChainAnswer
 import com.anton22255.transport.Message
@@ -120,9 +121,11 @@ class HonestAgent(
             }
             Type.BLOCK -> {
                 blockChain.addBlock(message.data as Block).also {
-                    if (it == ChainAnswer.DECLINE && message.data.depth == blockChain.getLastBlock().depth) {
+                    if( blockChain is AntBlockChain && (blockChain as AntBlockChain).hasForkOnAction){
                         statistic.incrementForkCount(message.expiredTime.toInt())
                     }
+//                    if (it == ChainAnswer.DECLINE && message.data.depth == blockChain.getLastBlock().depth) {
+//                    }
                 }
             }
 
