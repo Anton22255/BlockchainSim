@@ -1,7 +1,6 @@
 package com.anton22255.blockchain
 
 import com.anton22255.Block
-import com.anton22255.Statistic
 import kotlin.math.min
 
 class IGBlockchain : Chain {
@@ -32,19 +31,19 @@ class IGBlockchain : Chain {
 
     override fun requestData(request: Any): ChainAnswer {
         val firstDif = (request as? List<String>)?.let { hashes ->
-            findFirstDifIndex(hashes, mainBlocks.map { it.calculateHash() })
+            findFirstDifIndex(hashes, getMainVersion())
         } ?: 1
         return ChainAnswer.ANSWER.apply { data = mainBlocks.subList(firstDif, mainBlocks.size) }
     }
 
     fun findFirstDifIndex(hashes: List<String>, hashes2: List<String>) =
         (0 until min(hashes.size, hashes2.size))
-            .firstOrNull { !hashes[it].contentEquals(hashes2[it]) } ?: hashes.lastIndex
+            .firstOrNull { hashes[it]!=hashes2[it] } ?: hashes.lastIndex
 
     override fun answerData(answer: Any): ChainAnswer {
 
         (answer as? List<Block>)?.let {
-            if (it.last().depth > mainBlocks.last().depth) {
+            if (it.last().depth >= mainBlocks.last().depth) {
 
                 mainBlocks.removeAll(mainBlocks.takeLast(mainBlocks.last().depth - it.first().depth + 1))
                 mainBlocks.addAll(it)

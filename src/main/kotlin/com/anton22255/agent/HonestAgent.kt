@@ -56,7 +56,7 @@ class HonestAgent(
                 )
             }
 
-            ChainAnswer.REQUEST -> messagesForSending.add(
+            Type.BLOCK, ChainAnswer.REQUEST -> messagesForSending.add(
                 Message(
                     Type.REQUEST,
                     answer.data,
@@ -67,15 +67,28 @@ class HonestAgent(
                 )
             )
 
-            ChainAnswer.ANSWER -> sendMessage(
-                answer,
-                message,
-                Type.ANSWER,
-                (initData.sendTime + initData.sendBlockTime * ((answer.data as? List<*>)?.size?.toDouble()
-                    ?: 0.0)).toInt()
-            )
-        }
+            Type.ANSWER, ChainAnswer.ACCEPT -> {
 
+                sendMessageToChannels(
+                    (answer.data as Block).copy(),
+                    message.expiredTime,
+                    Type.BLOCK
+                )
+            }
+
+            ChainAnswer.ANSWER ->
+                messagesForSending.add(
+                    Message(
+                        type = Type.ANSWER,
+                        data = answer.data,
+                        senderId = id,
+                        recipientId = message.senderId,
+                        initTime = message.expiredTime,
+                        expiredTime = (initData.sendTime + initData.sendBlockTime * ((answer.data as? List<*>)?.size?.toDouble()
+                            ?: 0.0)).toLong()
+                    )
+                )
+        }
     }
 
     private fun sendMessage(

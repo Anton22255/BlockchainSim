@@ -24,6 +24,7 @@ class DataBase {
                 it[initN] = statisticResult.initData.initN
                 it[channelMinCount] = statisticResult.initData.channelMinCount
                 it[maxHashAgentRate] = statisticResult.initData.maxHashAgentRate
+                it[minHashAgentRate] = statisticResult.initData.minHashAgentRate
 
                 it[chainType] = statisticResult.initData.chainType.name
                 it[diedAlpha] = statisticResult.initData.diedAlpha
@@ -59,7 +60,8 @@ class DataBase {
                             .and(Experiments.chainType eq initData.chainType.name)
                             .and(Experiments.channelMinCount eq initData.channelMinCount)
                             .and(Experiments.initN eq initData.initN)
-                            .and(Experiments.version lessEq  version)
+                            .and(Experiments.version lessEq version)
+                            .and(Experiments.minHashAgentRate eq initData.minHashAgentRate)
 
                     }.toList().isNotEmpty())
         }
@@ -80,6 +82,7 @@ object Experiments : Table() {
     val initN = integer("initN")
     val channelMinCount = integer("channelMinCount")
     val maxHashAgentRate = long("maxHashAgentRate")
+    val minHashAgentRate = long("minHashAgentRate")
     val chainType = varchar("chainType", 50)
 
     val diedAlpha = double("diedAlpha")

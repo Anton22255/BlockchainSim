@@ -154,8 +154,10 @@ internal class IGBlockchainTest {
 
         val a = listOf("a", "b", "c", "d", "qw")
         val b = listOf("a", "b", "f", "g")
+        val c = listOf("a", "b", "c", "d1", "r")
         val findFirstDifIndex = blockChain.findFirstDifIndex(a, b)
         assertEquals(2, findFirstDifIndex)
+        assertEquals(3, blockChain.findFirstDifIndex(a, c))
 
         assertEquals(
             listOf("c", "d", "qw"),
