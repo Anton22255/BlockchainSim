@@ -2,12 +2,12 @@ package com.anton22255
 
 import com.anton22255.blockchain.ChainType
 import com.anton22255.db.DataBase
+import com.anton22255.graph.GraphVisualisation
 import com.anton22255.transport.Message
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.newFixedThreadPoolContext
 import java.util.*
 import kotlin.collections.HashMap
-import kotlin.math.sign
 
 object Main {
 
@@ -15,7 +15,7 @@ object Main {
     private const val periodCount: Long = 101
 
     const val transactionInOneRound: Int = 1001
-    const val initN = 55
+    const val initN = 10
     const val channelMinCount = 20
     const val maxHashAgentRate = 10000L
     val chainType = ChainType.ANT
@@ -32,6 +32,7 @@ object Main {
     @JvmStatic
     fun main(args: Array<String>) {
 
+
         val newFixedThreadPoolContext = newFixedThreadPoolContext(10, "background")
         val alphaVariants = arrayOf(0.000)
 //                = (1..5).map { it / 100.0 }
@@ -39,21 +40,19 @@ object Main {
 //                = (1..5).map { it / 100.0 }
         val sendTimeRange
 //                = arrayOf(1)
-                = arrayOf(1, 2, 3, 4)
+                = arrayOf(1, 2, 4, 8, 16)
 //                = 1..5
         val sendBlockTimeRange = arrayOf(0.1)
 //                = arrayOf(0.1, 0.5, 1.0, 3.0)
 //                = arrayOf(1.0, 1.5, 2.0, 2.5)
         val channelsRange
 //                = arrayOf(9)
-           =arrayOf(initN.times(0.3).toInt(), initN.times(0.5).toInt(), initN.times(0.8).toInt(),
-            initN - 1, initN-2, initN-10, initN-5 )
+                = arrayOf(initN.times(0.5).toInt(), initN - 2, initN - 3, initN-1)
+//            , initN.times(0.5).toInt(), initN.times(0.8).toInt())
 //                    = arrayOf(100, 1000, 2000, 5000, 8000, 10000)
-        val arrayOfChainTypes
-                = arrayListOf(ChainType.ANT)
+        val arrayOfChainTypes = arrayListOf(ChainType.ANT)
 //                = ChainType.values()
-        val periodRange
-                = arrayOf(1, 2, 5, 10)
+        val periodRange = arrayOf(2, 4, 8, 16)
 
         var counter = 1;
         val countAllVariants =
@@ -85,7 +84,7 @@ object Main {
                                         initN = initN,
                                         channelMinCount = channelsCount,
                                         maxHashAgentRate = 100L,
-                                        minHashAgentRate = 100L-1,
+                                        minHashAgentRate = 100L - 1,
                                         chainType = chainType,
                                         diedAlpha = diedAlpha,
                                         liveAlpha = liveAlpha,
@@ -110,7 +109,8 @@ object Main {
         initData: InitData,
         newFixedThreadPoolContext: ExecutorCoroutineDispatcher
     ) {
-        if (!dataBase.experimentExist(initData)) {
+        if (!dataBase.experimentExist(initData))
+        {
 
 //            (1..5).forEach {
                 val experiment = Experiment(

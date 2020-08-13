@@ -39,6 +39,10 @@ fun initChannels(agents: List<Agent>, linkCount: Int) {
             val notContain = agent.channels.filter { it.id.contentEquals(agents[indexOfChannel].id) }.isEmpty()
             if (index != indexOfChannel && notContain) {
                 agent.addChanel(agents[indexOfChannel])
+
+                if(!agents[indexOfChannel].channels.contains(agent)) {
+                    agents[indexOfChannel].addChanel(agent)
+                }
             }
         }
     }

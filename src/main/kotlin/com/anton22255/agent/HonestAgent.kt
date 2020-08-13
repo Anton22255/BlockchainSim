@@ -121,7 +121,7 @@ class HonestAgent(
             }
             Type.BLOCK -> {
                 blockChain.addBlock(message.data as Block).also {
-                    if( blockChain is AntBlockChain && (blockChain as AntBlockChain).hasForkOnAction){
+                    if (blockChain is AntBlockChain && (blockChain as AntBlockChain).hasForkOnAction) {
                         statistic.incrementForkCount(message.expiredTime.toInt())
                     }
 //                    if (it == ChainAnswer.DECLINE && message.data.depth == blockChain.getLastBlock().depth) {
@@ -166,8 +166,10 @@ class HonestAgent(
             blockChain.getLastBlock()
         )
             .let {
-                blockChain.addBlock(it)
-                sendMessageToChannels(it, time, Type.BLOCK)
+                val chainAnswer = blockChain.addBlock(it)
+                if (chainAnswer == ChainAnswer.ACCEPT) {
+                    sendMessageToChannels(it, time, Type.BLOCK)
+                }
             }
     }
 

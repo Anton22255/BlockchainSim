@@ -9,7 +9,7 @@ class Statistic(periodCount: Int) {
 
     fun incrementForkCount(period: Int) {
         forkCounters?.getOrNull(period)?.getAndUpdate { it.inc() }
-            ?: forkCounters.add(period, AtomicInteger(1))
+//            ?: forkCounters.add(period, AtomicInteger(1))
     }
 
     fun setCommonNumber(value: Int) = tailCounters.add(value.toLong())

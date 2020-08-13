@@ -69,7 +69,7 @@ class DataBase {
     }
 
     companion object {
-        val version = 2
+        val version = 3
     }
 
 }

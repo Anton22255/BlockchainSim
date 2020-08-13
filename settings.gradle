@@ -1,2 +1,4 @@
 rootProject.name = 'BlockchainSim'
+include 'graph'
+findProject(':graph')?.name = 'Graph'
 

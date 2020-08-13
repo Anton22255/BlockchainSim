@@ -2,11 +2,11 @@ package com.anton22255
 
 import com.anton22255.agent.Agent
 import com.anton22255.blockchain.ChainType
-import com.anton22255.db.DataBase
+import com.anton22255.graph.GraphVisualisation
+import com.anton22255.graph.graphExplore
 import com.anton22255.transport.Message
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.newFixedThreadPoolContext
 import kotlinx.coroutines.runBlocking
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -22,9 +22,11 @@ class Experiment(val initData: InitData, val fixedThreadPoolContext: ExecutorCor
     fun startExperiment(): StatisticResult {
         var population = populationUtils.initPopulation()
 
+        graphExplore(population)
+
         val timer = System.currentTimeMillis()
 
-        (1..initData.periodCount).forEach { time ->
+        (0 until initData.periodCount).forEach { time ->
             val transactionMessages = populationUtils.generateTransactions(population, time)
             addMessages(time, transactionMessages)
 
