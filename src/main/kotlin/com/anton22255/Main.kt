@@ -50,7 +50,9 @@ object Main {
                 = arrayOf(initN.times(0.5).toInt(), initN - 2, initN - 3, initN-1)
 //            , initN.times(0.5).toInt(), initN.times(0.8).toInt())
 //                    = arrayOf(100, 1000, 2000, 5000, 8000, 10000)
-        val arrayOfChainTypes = arrayListOf(ChainType.ANT)
+        val arrayOfChainTypes
+                = arrayListOf(ChainType.IG)
+//                = arrayListOf(ChainType.ANT)
 //                = ChainType.values()
         val periodRange = arrayOf(2, 4, 8, 16)
 
@@ -119,7 +121,7 @@ object Main {
                 )
                 val startExperiment = experiment.startExperiment()
                 dataBase.writeExperiment(startExperiment)
-//            }
-        }
+            }
+//        }
     }
 }

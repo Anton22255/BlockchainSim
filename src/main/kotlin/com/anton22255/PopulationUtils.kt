@@ -83,10 +83,10 @@ class PopulationUtils(val initData: InitData, val statistic: Statistic) {
 
     fun compareChains1(chains: List<List<String>>): Int {
 
-        println(" ============  ")
-        println(chains.first())
+//        println(" ============  ")
+//        println(chains.first())
         val list = chains.fold(chains.first()) { acc, item -> commonPart(acc, item) }
-        println(list.joinToString())
+//        println(list.joinToString())
         return list.size
     }
 
@@ -107,7 +107,7 @@ class PopulationUtils(val initData: InitData, val statistic: Statistic) {
 
     fun commonPart(partA: List<String>, partB: List<String>): List<String> {
         val result = ArrayList<String>()
-        println(partB)
+//        println(partB)
         for (i in 0 until (min(partA.size, partB.size))) {
             if (partA[i].contentEquals(partB[i])) {
                 result.add(partA[i])

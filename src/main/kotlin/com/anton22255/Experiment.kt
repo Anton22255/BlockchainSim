@@ -22,7 +22,7 @@ class Experiment(val initData: InitData, val fixedThreadPoolContext: ExecutorCor
     fun startExperiment(): StatisticResult {
         var population = populationUtils.initPopulation()
 
-        graphExplore(population)
+//        graphExplore(population)
 
         val timer = System.currentTimeMillis()
 
