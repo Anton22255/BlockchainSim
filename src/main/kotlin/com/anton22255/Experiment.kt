@@ -32,7 +32,7 @@ class Experiment(val initData: InitData, val fixedThreadPoolContext: ExecutorCor
 
 
             val choseLuckyAgents = choseLuckyAgents(population.map { it.hashRate }.toList(), initData.period)
-            if (time.rem(10) == 0L) {
+            if (time.rem(2) == 0L) {
                 println("time : $time; size :  ${population.size} ")
 //                println( choseLuckyAgents.joinToString())
             }
@@ -41,12 +41,15 @@ class Experiment(val initData: InitData, val fixedThreadPoolContext: ExecutorCor
 
             population.forEach {
                 val messages = it.sendMessage()
-                messages.forEach {
-                    addMessage(it.expiredTime, it)
+                messages.forEach { message ->
+                    message?.let {
+                        addMessage(message.expiredTime, message)
+                    }
                 }
                 it.clearMessage()
             }
 
+//            processMessage(time, population)
             processMessageCorutines(time, population)
 
             statisticResult.setCommonNumber(
@@ -94,6 +97,17 @@ class Experiment(val initData: InitData, val fixedThreadPoolContext: ExecutorCor
             }
             jobs?.forEach { it.join() }
         }
+    }
+
+    private fun processMessage(
+        time: Long,
+        population: MutableList<Agent>
+    ) {
+
+        messageQueue[time]?.map { message ->
+            populationUtils.processMessage(population, message)
+        }
+
     }
 }
 

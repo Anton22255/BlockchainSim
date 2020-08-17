@@ -12,10 +12,10 @@ import kotlin.collections.HashMap
 object Main {
 
     private const val period: Int = 10
-    private const val periodCount: Long = 101
+    private const val periodCount: Long = 12
 
     const val transactionInOneRound: Int = 1001
-    const val initN = 10
+    const val initN = 3
     const val channelMinCount = 20
     const val maxHashAgentRate = 10000L
     val chainType = ChainType.ANT
@@ -33,28 +33,29 @@ object Main {
     fun main(args: Array<String>) {
 
 
-        val newFixedThreadPoolContext = newFixedThreadPoolContext(10, "background")
+        val newFixedThreadPoolContext = newFixedThreadPoolContext(8, "background")
         val alphaVariants = arrayOf(0.000)
 //                = (1..5).map { it / 100.0 }
         val liveAlphaVariants = arrayOf(0.00)
 //                = (1..5).map { it / 100.0 }
-        val sendTimeRange
-//                = arrayOf(1)
-                = arrayOf(1, 2, 4, 8, 16)
+        val sendTimeRange = arrayOf(1)
+//                = arrayOf(1, 2, 4, 8, 16)
 //                = 1..5
         val sendBlockTimeRange = arrayOf(0.1)
 //                = arrayOf(0.1, 0.5, 1.0, 3.0)
 //                = arrayOf(1.0, 1.5, 2.0, 2.5)
         val channelsRange
 //                = arrayOf(9)
-                = arrayOf(initN.times(0.5).toInt(), initN - 2, initN - 3, initN-1)
+//                = arrayOf(initN.times(0.5).toInt(), initN - 2, initN - 3, initN-1)
+                = arrayOf(initN - 1)
 //            , initN.times(0.5).toInt(), initN.times(0.8).toInt())
 //                    = arrayOf(100, 1000, 2000, 5000, 8000, 10000)
-        val arrayOfChainTypes
-                = arrayListOf(ChainType.IG)
+        val arrayOfChainTypes = arrayListOf(ChainType.IG)
 //                = arrayListOf(ChainType.ANT)
 //                = ChainType.values()
-        val periodRange = arrayOf(2, 4, 8, 16)
+        val periodRange
+//                = arrayOf(2, 4, 8, 16)
+                = arrayOf(2)
 
         var counter = 1;
         val countAllVariants =
@@ -111,17 +112,16 @@ object Main {
         initData: InitData,
         newFixedThreadPoolContext: ExecutorCoroutineDispatcher
     ) {
-        if (!dataBase.experimentExist(initData))
-        {
+//        if (!dataBase.experimentExist(initData)) {
 
-//            (1..5).forEach {
-                val experiment = Experiment(
-                    initData = initData,
-                    fixedThreadPoolContext = newFixedThreadPoolContext
-                )
-                val startExperiment = experiment.startExperiment()
-                dataBase.writeExperiment(startExperiment)
-            }
-//        }
+        (1..5).forEach {
+            val experiment = Experiment(
+                initData = initData,
+                fixedThreadPoolContext = newFixedThreadPoolContext
+            )
+            val startExperiment = experiment.startExperiment()
+            dataBase.writeExperiment(startExperiment)
+        }
     }
+//    }
 }

@@ -15,15 +15,17 @@ import kotlin.collections.ArrayList
 class HonestAgent(
     override val hashRate: Long,
     blockChain: Chain,
-    val initData: InitData,
-    val statistic: Statistic
+    private val initData: InitData,
+    private val statistic: Statistic
 ) : Agent {
+
     override val id: String = UUID.randomUUID().toString()
     override val channels = ArrayList<Agent>()
     override var blockChain: Chain = blockChain
     private var transactionPool = ArrayList<Transaction>()
 
     private var messagesForSending = arrayListOf<Message>()
+//            = Collections.synchronizedList(arrayListOf<Message>())
 
     override fun init() {
         blockChain = channels.lastOrNull()!!.blockChain.copy()
@@ -40,56 +42,118 @@ class HonestAgent(
     override fun receiveMessage(message: Message) {
         //parse message
 
-        val answer = processMessage(message)
-        when (Pair(message.type, answer)) {
-            Type.TRANSACTION, ChainAnswer.ACCEPT -> {
-                sendMessageToChannels(
-                    (message.data as Transaction).copy(),
-                    message.expiredTime,
-                    message.type
-                )
-            }
-            Type.BLOCK, ChainAnswer.ACCEPT -> {
-                sendMessageToChannels(
-                    (message.data as Block).copy(),
-                    message.expiredTime,
-                    message.type
-                )
-            }
+        synchronized(this) {
 
-            Type.BLOCK, ChainAnswer.REQUEST -> messagesForSending.add(
-                Message(
-                    Type.REQUEST,
-                    answer.data,
-                    id,
-                    message.senderId,
-                    message.expiredTime,
-                    message.expiredTime + initData.sendTime
-                )
-            )
+            when (val answer = processMessage(message)) {
 
-            Type.ANSWER, ChainAnswer.ACCEPT -> {
+                ChainAnswer.ACCEPT -> {
 
-                sendMessageToChannels(
-                    (answer.data as Block).copy(),
-                    message.expiredTime,
-                    Type.BLOCK
-                )
-            }
+                    var data: Any? = null
+                    var type: Type? = null
+                    when (answer.data) {
+                        is Transaction -> {
+                            data = (answer.data as Transaction).copy()
+                            type = Type.TRANSACTION
+                        }
+                        is Block -> {
+                            data = (answer.data as Block).copy()
+                            type = Type.BLOCK
+                        }
+//                    is List<*> ->{
+//                        data = (answer.data as Block).copy()
+//                        type = Type.BLOCK
+//                    }
+                        else ->
+                            println("WTF ${answer.name}  ${answer.data} ${message.data} ${message.type}")
+                    }
 
-            ChainAnswer.ANSWER ->
-                messagesForSending.add(
-                    Message(
+                    sendMessageToChannels(
+                        data!!,
+                        message.expiredTime,
+                        type!!
+                    )
+                }
+
+                ChainAnswer.REQUEST -> {
+
+                    println("$this  Block - Request")
+                    sendMessageToChannel(
+                        type = Type.REQUEST,
+                        data = answer.data,
+                        time = message.expiredTime,
+                        recipientId = message.senderId
+                    )
+                }
+
+                ChainAnswer.ANSWER -> {
+                    println("$this  Block - ANSWER")
+                    sendMessageToChannel(
                         type = Type.ANSWER,
                         data = answer.data,
-                        senderId = id,
+                        time = message.expiredTime,
                         recipientId = message.senderId,
-                        initTime = message.expiredTime,
-                        expiredTime = (initData.sendTime + initData.sendBlockTime * ((answer.data as? List<*>)?.size?.toDouble()
-                            ?: 0.0)).toLong()
+                        addedTime = initData.sendTime.plus(
+                            (answer.data as? List<*>)?.size?.times(initData.sendBlockTime) ?: 0.0
+                        ).toInt()
                     )
-                )
+                }
+            }
         }
+
+
+//        when (Pair(message.type, answer)) {
+//            Pair(Type.TRANSACTION, ChainAnswer.ACCEPT) -> {
+//                sendMessageToChannels(
+//                    (message.data as Transaction).copy(),
+//                    message.expiredTime,
+//                    Type.TRANSACTION
+//                )
+//            }
+//            Pair(Type.BLOCK, ChainAnswer.ACCEPT) -> {
+//                sendMessageToChannels(
+//                    (message.data as Block).copy(),
+//                    message.expiredTime,
+//                    Type.BLOCK
+//                )
+//            }
+//
+//            Pair(Type.BLOCK, ChainAnswer.REQUEST) -> {
+//
+//                println("$this  Block - Request")
+//                messagesForSending.add(
+//                    Message(
+//                        Type.REQUEST,
+//                        answer.data,
+//                        id,
+//                        message.senderId,
+//                        message.expiredTime,
+//                        message.expiredTime + initData.sendTime
+//                    )
+//                )
+//            }
+//            Pair(Type.ANSWER, ChainAnswer.ACCEPT) -> {
+//
+//                sendMessageToChannels(
+//                    (answer.data as Block).copy(),
+//                    message.expiredTime,
+//                    Type.BLOCK
+//                )
+//            }
+//
+//            Pair(Type.REQUEST, ChainAnswer.ANSWER) -> {
+//                messagesForSending.add(
+//                    Message(
+//                        type = Type.ANSWER,
+//                        data = answer.data,
+//                        senderId = id,
+//                        recipientId = message.senderId,
+//                        initTime = message.expiredTime,
+//                        expiredTime = message.expiredTime + initData.sendTime + (initData.sendBlockTime * ((answer.data as? List<*>)?.size?.toDouble()
+//                            ?: 0.0)).toLong()
+//                    )
+//                )
+//            }
+//        }
     }
 
     private fun sendMessage(
@@ -112,6 +176,7 @@ class HonestAgent(
 
     private fun processMessage(message: Message): ChainAnswer {
 
+
         return when (message.type) {
             Type.TRANSACTION -> {
                 transactionPool.add(message.data as Transaction)
@@ -121,6 +186,9 @@ class HonestAgent(
             }
             Type.BLOCK -> {
                 blockChain.addBlock(message.data as Block).also {
+                    if (it == ChainAnswer.REQUEST) {
+                        println("in blockchain ChainAnswer.REQUEST")
+                    }
                     if (blockChain is AntBlockChain && (blockChain as AntBlockChain).hasForkOnAction) {
                         statistic.incrementForkCount(message.expiredTime.toInt())
                     }
@@ -135,8 +203,8 @@ class HonestAgent(
 
             Type.ANSWER -> {
                 blockChain.answerData(message.data)
-                    .also {
-                        if (it == ChainAnswer.ACCEPT) {
+                    .apply {
+                        if (this == ChainAnswer.ACCEPT) {
                             statistic.incrementForkCount(message.expiredTime.toInt())
                         }
                     }
@@ -174,21 +242,31 @@ class HonestAgent(
     }
 
     private fun sendMessageToChannels(
-        it: Any,
+        data: Any,
         time: Long,
         type: Type
     ) {
         channels.forEach { agent ->
-            messagesForSending.add(
-                Message(
-                    type = type,
-                    data = it,
-                    initTime = time,
-                    expiredTime = time + initData.sendTime,
-                    senderId = id,
-                    recipientId = agent.id
-                )
-            )
+            sendMessageToChannel(type, data, time, initData.sendTime, agent.id)
         }
+    }
+
+    private fun sendMessageToChannel(
+        type: Type,
+        data: Any,
+        time: Long,
+        addedTime: Int = initData.sendTime,
+        recipientId: String
+    ) {
+        messagesForSending.add(
+            Message(
+                type = type,
+                data = data,
+                initTime = time,
+                expiredTime = time + addedTime,
+                senderId = id,
+                recipientId = recipientId
+            )
+        )
     }
 }
