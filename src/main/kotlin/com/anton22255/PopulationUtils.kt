@@ -77,8 +77,11 @@ class PopulationUtils(val initData: InitData, val statistic: Statistic) {
     }
 
     fun compareChains(population: MutableList<Agent>): Int {
-
         return compareChains1(population.map { it.blockChain.getMainVersion() })
+    }
+
+    fun forkChains(population: MutableList<Agent>): Int {
+        return population.map { it.blockChain.getMainVersion() }.toHashSet().size
     }
 
     fun compareChains1(chains: List<List<String>>): Int {

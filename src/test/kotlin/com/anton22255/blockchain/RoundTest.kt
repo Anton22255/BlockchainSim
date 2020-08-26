@@ -5,6 +5,7 @@ import com.anton22255.PopulationUtils
 import com.anton22255.Statistic
 import com.anton22255.choseLuckyAgents
 import org.junit.Test
+import kotlin.test.assertEquals
 
 internal class RoundTest {
 
@@ -21,5 +22,25 @@ internal class RoundTest {
             print("lucky agents " + choseLuckyAgents.joinToString(separator = " "))
             println()
         }
+    }
+
+    @Test
+    fun countForkTest() {
+
+        val chain1 = listOf("a", "b", "c")
+        val chain2 = listOf("a", "b", "c")
+        val chain3 = listOf("a", "b", "c", "d")
+
+        val chains = HashSet<List<String>>()
+
+        chains.add(chain1)
+        chains.add(chain2)
+        chains.add(chain3)
+
+        val chains2 = hashSetOf(chain1, chain3)
+
+        assertEquals(2, chains.size)
+        assertEquals(chains2, chains)
+
     }
 }

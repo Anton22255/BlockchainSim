@@ -6,6 +6,7 @@ class Statistic(periodCount: Int) {
 
     val forkCounters = MutableList(periodCount) { AtomicInteger(0) }
     val tailCounters = arrayListOf<Long>()
+    val forkNewCounters = arrayListOf<Int>()
 
     fun incrementForkCount(period: Int) {
         forkCounters?.getOrNull(period)?.getAndUpdate { it.inc() }
@@ -13,6 +14,8 @@ class Statistic(periodCount: Int) {
     }
 
     fun setCommonNumber(value: Int) = tailCounters.add(value.toLong())
+
+    fun setForkNumber(value: Int) = forkNewCounters.add(value)
 }
 
 data class StatisticResult(

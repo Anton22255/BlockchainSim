@@ -25,7 +25,6 @@ class HonestAgent(
     private var transactionPool = ArrayList<Transaction>()
 
     private var messagesForSending = arrayListOf<Message>()
-//            = Collections.synchronizedList(arrayListOf<Message>())
 
     override fun init() {
         blockChain = channels.lastOrNull()!!.blockChain.copy()
@@ -42,136 +41,54 @@ class HonestAgent(
     override fun receiveMessage(message: Message) {
         //parse message
 
-        synchronized(this) {
+        when (val answer = processMessage(message)) {
 
-            when (val answer = processMessage(message)) {
+            ChainAnswer.ACCEPT -> {
 
-                ChainAnswer.ACCEPT -> {
-
-                    var data: Any? = null
-                    var type: Type? = null
-                    when (answer.data) {
-                        is Transaction -> {
-                            data = (answer.data as Transaction).copy()
-                            type = Type.TRANSACTION
-                        }
-                        is Block -> {
-                            data = (answer.data as Block).copy()
-                            type = Type.BLOCK
-                        }
-//                    is List<*> ->{
-//                        data = (answer.data as Block).copy()
-//                        type = Type.BLOCK
-//                    }
-                        else ->
-                            println("WTF ${answer.name}  ${answer.data} ${message.data} ${message.type}")
+                var data: Any? = null
+                var type: Type? = null
+                when (answer.data) {
+                    is Transaction -> {
+                        data = (answer.data as Transaction).copy()
+                        type = Type.TRANSACTION
                     }
-
-                    sendMessageToChannels(
-                        data!!,
-                        message.expiredTime,
-                        type!!
-                    )
+                    is Block -> {
+                        data = (answer.data as Block).copy()
+                        type = Type.BLOCK
+                    }
+                    else ->
+                        println("WTF ${answer.name}  ${answer.data} ${message.data} ${message.type}")
                 }
 
-                ChainAnswer.REQUEST -> {
+                sendMessageToChannels(
+                    data!!,
+                    message.expiredTime,
+                    type!!
+                )
+            }
 
-                    println("$this  Block - Request")
-                    sendMessageToChannel(
-                        type = Type.REQUEST,
-                        data = answer.data,
-                        time = message.expiredTime,
-                        recipientId = message.senderId
-                    )
-                }
+            ChainAnswer.REQUEST -> {
 
-                ChainAnswer.ANSWER -> {
-                    println("$this  Block - ANSWER")
-                    sendMessageToChannel(
-                        type = Type.ANSWER,
-                        data = answer.data,
-                        time = message.expiredTime,
-                        recipientId = message.senderId,
-                        addedTime = initData.sendTime.plus(
-                            (answer.data as? List<*>)?.size?.times(initData.sendBlockTime) ?: 0.0
-                        ).toInt()
-                    )
-                }
+                sendMessageToChannel(
+                    type = Type.REQUEST,
+                    data = answer.data,
+                    time = message.expiredTime,
+                    recipientId = message.senderId
+                )
+            }
+
+            ChainAnswer.ANSWER -> {
+                sendMessageToChannel(
+                    type = Type.ANSWER,
+                    data = answer.data,
+                    time = message.expiredTime,
+                    recipientId = message.senderId,
+                    addedTime = initData.sendTime.plus(
+                        (answer.data as? List<*>)?.size?.times(initData.sendBlockTime) ?: initData.sendTime.toDouble()
+                    ).toInt()
+                )
             }
         }
-
-
-//        when (Pair(message.type, answer)) {
-//            Pair(Type.TRANSACTION, ChainAnswer.ACCEPT) -> {
-//                sendMessageToChannels(
-//                    (message.data as Transaction).copy(),
-//                    message.expiredTime,
-//                    Type.TRANSACTION
-//                )
-//            }
-//            Pair(Type.BLOCK, ChainAnswer.ACCEPT) -> {
-//                sendMessageToChannels(
-//                    (message.data as Block).copy(),
-//                    message.expiredTime,
-//                    Type.BLOCK
-//                )
-//            }
-//
-//            Pair(Type.BLOCK, ChainAnswer.REQUEST) -> {
-//
-//                println("$this  Block - Request")
-//                messagesForSending.add(
-//                    Message(
-//                        Type.REQUEST,
-//                        answer.data,
-//                        id,
-//                        message.senderId,
-//                        message.expiredTime,
-//                        message.expiredTime + initData.sendTime
-//                    )
-//                )
-//            }
-//            Pair(Type.ANSWER, ChainAnswer.ACCEPT) -> {
-//
-//                sendMessageToChannels(
-//                    (answer.data as Block).copy(),
-//                    message.expiredTime,
-//                    Type.BLOCK
-//                )
-//            }
-//
-//            Pair(Type.REQUEST, ChainAnswer.ANSWER) -> {
-//                messagesForSending.add(
-//                    Message(
-//                        type = Type.ANSWER,
-//                        data = answer.data,
-//                        senderId = id,
-//                        recipientId = message.senderId,
-//                        initTime = message.expiredTime,
-//                        expiredTime = message.expiredTime + initData.sendTime + (initData.sendBlockTime * ((answer.data as? List<*>)?.size?.toDouble()
-//                            ?: 0.0)).toLong()
-//                    )
-//                )
-//            }
-//        }
-    }
-
-    private fun sendMessage(
-        chainAnswer: ChainAnswer,
-        message: Message,
-        type: Type,
-        extraTime: Int
-    ) {
-        messagesForSending.add(
-            Message(
-                type,
-                chainAnswer.data,
-                id,
-                message.senderId,
-                message.expiredTime,
-                message.expiredTime + extraTime
-            )
-        )
     }
 
     private fun processMessage(message: Message): ChainAnswer {
@@ -179,20 +96,24 @@ class HonestAgent(
 
         return when (message.type) {
             Type.TRANSACTION -> {
-                transactionPool.add(message.data as Transaction)
-                ChainAnswer.ACCEPT.apply {
-                    data = message.data
+                val transaction = message.data as Transaction
+                if (transactionPool.contains(transaction)) {
+                    transactionPool.add(transaction)
+
+                    ChainAnswer.ACCEPT.apply {
+                        data = message.data
+                    }
+                } else {
+                    ChainAnswer.DECLINE
                 }
             }
             Type.BLOCK -> {
                 blockChain.addBlock(message.data as Block).also {
-                    if (it == ChainAnswer.REQUEST) {
-                        println("in blockchain ChainAnswer.REQUEST")
-                    }
-                    if (blockChain is AntBlockChain && (blockChain as AntBlockChain).hasForkOnAction) {
-                        statistic.incrementForkCount(message.expiredTime.toInt())
-                    }
-//                    if (it == ChainAnswer.DECLINE && message.data.depth == blockChain.getLastBlock().depth) {
+//                    if (it == ChainAnswer.REQUEST) {
+//                        println("in blockchain ChainAnswer.REQUEST")
+//                    }
+//                    if (blockChain is AntBlockChain && (blockChain as AntBlockChain).hasForkOnAction) {
+//                        statistic.incrementForkCount(message.expiredTime.toInt())
 //                    }
                 }
             }
@@ -203,11 +124,11 @@ class HonestAgent(
 
             Type.ANSWER -> {
                 blockChain.answerData(message.data)
-                    .apply {
-                        if (this == ChainAnswer.ACCEPT) {
-                            statistic.incrementForkCount(message.expiredTime.toInt())
-                        }
-                    }
+//                    .apply {
+//                        if (this == ChainAnswer.ACCEPT) {
+//                            statistic.incrementForkCount(message.expiredTime.toInt())
+//                        }
+//                    }
             }
             else -> {
                 ChainAnswer.DECLINE

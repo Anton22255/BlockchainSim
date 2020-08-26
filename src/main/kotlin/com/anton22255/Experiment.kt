@@ -26,16 +26,20 @@ class Experiment(val initData: InitData, val fixedThreadPoolContext: ExecutorCor
 
         val timer = System.currentTimeMillis()
 
+
+
         (0 until initData.periodCount).forEach { time ->
             val transactionMessages = populationUtils.generateTransactions(population, time)
             addMessages(time, transactionMessages)
 
 
             val choseLuckyAgents = choseLuckyAgents(population.map { it.hashRate }.toList(), initData.period)
-            if (time.rem(2) == 0L) {
+            if (time.rem(10) == 0L) {
                 println("time : $time; size :  ${population.size} ")
 //                println( choseLuckyAgents.joinToString())
             }
+
+//            println(messageQueue.values.map { it.size }.joinToString())
 
             populationUtils.createMinerBlocks(choseLuckyAgents, population, time)
 
@@ -49,12 +53,11 @@ class Experiment(val initData: InitData, val fixedThreadPoolContext: ExecutorCor
                 it.clearMessage()
             }
 
-//            processMessage(time, population)
-            processMessageCorutines(time, population)
+            processMessage(time, population)
+//            processMessageCorutines(time, population)
 
-            statisticResult.setCommonNumber(
-                populationUtils.compareChains(population)
-            )
+            statisticResult.setCommonNumber(populationUtils.compareChains(population))
+            statisticResult.setForkNumber(populationUtils.forkChains(population))
 
             if (initData.needExpendedStatistic) {
                 expendedStatistic.resultMatrix
@@ -71,7 +74,7 @@ class Experiment(val initData: InitData, val fixedThreadPoolContext: ExecutorCor
         }
 
         return StatisticResult(
-            initData, time, statisticResult.forkCounters.map { it.toLong() },
+            initData, time, statisticResult.forkNewCounters.map { it.toLong() },
             statisticResult.tailCounters
         )
     }
@@ -123,7 +126,7 @@ data class InitData(
     val diedAlpha: Double = 0.01,
     val liveAlpha: Double = 0.02,
 
-    val sendTime: Int = 3,
+    val sendTime: Int = 4,
     val sendBlockTime: Double = 3.0,
 
     val period: Int = 10,

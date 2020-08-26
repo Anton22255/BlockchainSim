@@ -8,13 +8,11 @@ import kotlin.math.min
 class IGBlockchain : Chain {
     override lateinit var statistic: Statistic
 
-    val mainBlocks: MutableList<Block> = Collections.synchronizedList(arrayListOf(createGenesisBlock()))
+    val mainBlocks: MutableList<Block> = arrayListOf(createGenesisBlock())
 
     override fun getLastBlock(): Block = mainBlocks.last()
 
     override fun addBlock(block: Block): ChainAnswer {
-        synchronized(this) {
-
             return if (block.depth <= getLastBlock().depth) {
                 ChainAnswer.DECLINE
             } else {
@@ -29,7 +27,6 @@ class IGBlockchain : Chain {
                     }
                 }
             }
-        }
     }
 
     override fun requestData(request: Any): ChainAnswer {
@@ -46,7 +43,6 @@ class IGBlockchain : Chain {
             .firstOrNull { hashes[it] != hashes2[it] } ?: hashes.lastIndex
 
     override fun answerData(answer: Any): ChainAnswer {
-        synchronized(mainBlocks) {
 
             (answer as? List<Block>)?.let {
                 if (it.last().depth >= mainBlocks.last().depth) {
@@ -63,7 +59,6 @@ class IGBlockchain : Chain {
                 }
             }
             return ChainAnswer.DECLINE
-        }
     }
 
     override fun getMainVersion(): List<String> = mainBlocks.map { it.calculateHash() }
@@ -73,5 +68,4 @@ class IGBlockchain : Chain {
             mainBlocks.clear()
             mainBlocks.addAll(mainBlocks.toMutableList())
         }
-
 }
