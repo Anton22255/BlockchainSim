@@ -8,25 +8,25 @@ import kotlin.math.min
 class IGBlockchain : Chain {
     override lateinit var statistic: Statistic
 
-    val mainBlocks: MutableList<Block> = arrayListOf(createGenesisBlock())
+    var mainBlocks: MutableList<Block> = arrayListOf(createGenesisBlock())
 
     override fun getLastBlock(): Block = mainBlocks.last()
 
     override fun addBlock(block: Block): ChainAnswer {
-            return if (block.depth <= getLastBlock().depth) {
-                ChainAnswer.DECLINE
+        return if (block.depth <= getLastBlock().depth) {
+            ChainAnswer.DECLINE
+        } else {
+            if (block.prevHash == getLastBlock().calculateHash()) {
+                mainBlocks.add(block)
+                ChainAnswer.ACCEPT.apply {
+                    data = block
+                }
             } else {
-                if (block.prevHash == getLastBlock().calculateHash()) {
-                    mainBlocks.add(block)
-                    ChainAnswer.ACCEPT.apply {
-                        data = block
-                    }
-                } else {
-                    ChainAnswer.REQUEST.apply {
-                        data = mainBlocks.map { it.calculateHash() }.toList()
-                    }
+                ChainAnswer.REQUEST.apply {
+                    data = mainBlocks.map { it.calculateHash() }.toList()
                 }
             }
+        }
     }
 
     override fun requestData(request: Any): ChainAnswer {
@@ -48,8 +48,9 @@ class IGBlockchain : Chain {
                 if (it.last().depth >= mainBlocks.last().depth) {
 
                     mainBlocks.removeAll(mainBlocks.takeLast(mainBlocks.last().depth - it.first().depth + 1))
+//                mainBlocks = mainBlocks.dropLast(mainBlocks.last().depth - it.first().depth + 1).toMutableList()
+//                mainBlocks.addAll(it)
                     mainBlocks.addAll(it)
-
                     return ChainAnswer.ACCEPT.apply {
                         data = mainBlocks.last()
                     }

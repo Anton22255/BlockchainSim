@@ -5,23 +5,23 @@ import com.anton22255.Statistic
 
 class AntBlockChain() : Chain {
     private val blockPool = arrayListOf<Block>()
-    private val mainBlocks: ArrayList<MutableList<Block>> = ArrayList()
+    private val mainBlocks: ArrayList<HashMap<String, Block>> = ArrayList()
     private var endOfMainBranch: Block
     override lateinit var statistic: Statistic
 
-    var hasForkOnAction = false
+//    var hasForkOnAction = false
 
     init {
-        mainBlocks.add(arrayListOf(createGenesisBlock()))
-        endOfMainBranch = mainBlocks[0][0]
+        val genesisBlock = createGenesisBlock()
+        mainBlocks.add(hashMapOf(genesisBlock.calculateHash() to genesisBlock) as java.util.HashMap<String, Block>)
+        endOfMainBranch = mainBlocks[0].values.first()
     }
-
 
     override fun getLastBlock() = endOfMainBranch
 
     override fun addBlock(block: Block): ChainAnswer {
 
-        hasForkOnAction = false
+//        hasForkOnAction = false
         val result = addToTree(block)
         if (result == ChainAnswer.ACCEPT) {
             processPool(block)
@@ -36,7 +36,7 @@ class AntBlockChain() : Chain {
             this.blockPool.addAll(this@AntBlockChain.blockPool.toList())
 
             this@AntBlockChain.mainBlocks.forEach {
-                val list = it.map { it.copy() }.toMutableList()
+                val list = HashMap(it.map { it.value.copy() }.map { it.calculateHash() to it }.toMap())
                 this.mainBlocks.add(list)
             }
 
@@ -57,12 +57,17 @@ class AntBlockChain() : Chain {
             val depth = block.depth - 1
             val blocksOnDepth = getLevel(depth)
             return if (blocksOnDepth?.isNotEmpty() == true) {
-                blocksOnDepth.find {
-                    it.calculateHash() == block.prevHash
-                }
+                blocksOnDepth[block.prevHash]
                     ?.let {
                         addToMainTree(block)
-                    } ?: addToPool(block)
+                    }
+                    ?: addToPool(block)
+//                blocksOnDepth.find {
+//                    it.calculateHash() == block.prevHash
+//                }
+//                    ?.let {
+//                        addToMainTree(block)
+//                    } ?: addToPool(block)
             } else {
                 addToPool(block)
             }
@@ -71,14 +76,14 @@ class AntBlockChain() : Chain {
 
     fun addToMainTree(block: Block): ChainAnswer {
         val blocks = getLevel(block.depth)
-        return if (blocks?.contains(block) == true) {
+        return if (blocks?.containsKey(block.calculateHash()) == true) {
             ChainAnswer.DECLINE
         } else {
-            blocks?.add(block) ?: mainBlocks.add(arrayListOf(block))
+            blocks?.put(block.calculateHash(), block) ?: mainBlocks.add(hashMapOf(block.calculateHash() to block))
 
-            if (blocks?.size ?: 0 > 1 && blocks?.count { it.prevHash == block.prevHash } ?: 0 > 1) {
-                hasForkOnAction = true
-            }
+//            if (blocks?.size ?: 0 > 1 && blocks?.count { it.prevHash == block.prevHash } ?: 0 > 1) {
+//                hasForkOnAction = true
+//            }
 
             processPool(block)
             ChainAnswer.ACCEPT
@@ -108,7 +113,7 @@ class AntBlockChain() : Chain {
     }
 
     fun findMainBranch() {
-        endOfMainBranch = mainBlocks.last().first()
+        endOfMainBranch = mainBlocks.last().values.first()
     }
 
     override fun getMainVersion(): List<String> {

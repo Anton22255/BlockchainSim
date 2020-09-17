@@ -12,7 +12,7 @@ interface Agent {
 
     fun sendMessage(): List<Message>
 
-    fun receiveMessage(message: Message)
+    suspend fun receiveMessage(message: Message)
 
     fun addChanel(agent: Agent)
 

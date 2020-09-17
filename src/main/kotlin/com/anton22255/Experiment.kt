@@ -26,8 +26,6 @@ class Experiment(val initData: InitData, val fixedThreadPoolContext: ExecutorCor
 
         val timer = System.currentTimeMillis()
 
-
-
         (0 until initData.periodCount).forEach { time ->
             val transactionMessages = populationUtils.generateTransactions(population, time)
             addMessages(time, transactionMessages)
@@ -35,7 +33,8 @@ class Experiment(val initData: InitData, val fixedThreadPoolContext: ExecutorCor
 
             val choseLuckyAgents = choseLuckyAgents(population.map { it.hashRate }.toList(), initData.period)
             if (time.rem(10) == 0L) {
-                println("time : $time; size :  ${population.size} ")
+                print("_ ")
+
 //                println( choseLuckyAgents.joinToString())
             }
 
@@ -53,8 +52,8 @@ class Experiment(val initData: InitData, val fixedThreadPoolContext: ExecutorCor
                 it.clearMessage()
             }
 
-            processMessage(time, population)
-//            processMessageCorutines(time, population)
+//            processMessage(time, population)
+            processMessageCorutines(time, population)
 
             statisticResult.setCommonNumber(populationUtils.compareChains(population))
             statisticResult.setForkNumber(populationUtils.forkChains(population))
@@ -73,6 +72,7 @@ class Experiment(val initData: InitData, val fixedThreadPoolContext: ExecutorCor
             writeStatistics(initData, expendedStatistic)
         }
 
+        println("time : $time; size :  ${population.size} ")
         return StatisticResult(
             initData, time, statisticResult.forkNewCounters.map { it.toLong() },
             statisticResult.tailCounters
@@ -102,16 +102,16 @@ class Experiment(val initData: InitData, val fixedThreadPoolContext: ExecutorCor
         }
     }
 
-    private fun processMessage(
-        time: Long,
-        population: MutableList<Agent>
-    ) {
-
-        messageQueue[time]?.map { message ->
-            populationUtils.processMessage(population, message)
-        }
-
-    }
+//    suspend fun processMessage(
+//        time: Long,
+//        population: MutableList<Agent>
+//    ) {
+//
+//        messageQueue[time]?.map { message ->
+//            populationUtils.processMessage(population, message)
+//        }
+//
+//    }
 }
 
 data class InitData(

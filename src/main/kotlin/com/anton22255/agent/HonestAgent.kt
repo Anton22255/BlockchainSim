@@ -38,7 +38,7 @@ class HonestAgent(
         messagesForSending.clear()
     }
 
-    override fun receiveMessage(message: Message) {
+    override suspend fun receiveMessage(message: Message) {
         //parse message
 
         when (val answer = processMessage(message)) {
@@ -93,46 +93,48 @@ class HonestAgent(
 
     private fun processMessage(message: Message): ChainAnswer {
 
+        synchronized(this) {
 
-        return when (message.type) {
-            Type.TRANSACTION -> {
-                val transaction = message.data as Transaction
-                if (transactionPool.contains(transaction)) {
-                    transactionPool.add(transaction)
+            return when (message.type) {
+                Type.TRANSACTION -> {
+                    val transaction = message.data as Transaction
+                    if (transactionPool.contains(transaction)) {
+                        transactionPool.add(transaction)
 
-                    ChainAnswer.ACCEPT.apply {
-                        data = message.data
+                        ChainAnswer.ACCEPT.apply {
+                            data = message.data
+                        }
+                    } else {
+                        ChainAnswer.DECLINE
                     }
-                } else {
-                    ChainAnswer.DECLINE
                 }
-            }
-            Type.BLOCK -> {
-                blockChain.addBlock(message.data as Block).also {
+                Type.BLOCK -> {
+                    blockChain.addBlock(message.data as Block).also {
 //                    if (it == ChainAnswer.REQUEST) {
 //                        println("in blockchain ChainAnswer.REQUEST")
 //                    }
 //                    if (blockChain is AntBlockChain && (blockChain as AntBlockChain).hasForkOnAction) {
 //                        statistic.incrementForkCount(message.expiredTime.toInt())
 //                    }
+                    }
                 }
-            }
 
-            Type.REQUEST -> {
-                blockChain.requestData(message.data)
-            }
+                Type.REQUEST -> {
+                    blockChain.requestData(message.data)
+                }
 
-            Type.ANSWER -> {
-                blockChain.answerData(message.data)
+                Type.ANSWER -> {
+                    blockChain.answerData(message.data)
 //                    .apply {
 //                        if (this == ChainAnswer.ACCEPT) {
 //                            statistic.incrementForkCount(message.expiredTime.toInt())
 //                        }
 //                    }
-            }
-            else -> {
-                ChainAnswer.DECLINE
+                }
+                else -> {
+                    ChainAnswer.DECLINE
 
+                }
             }
         }
     }

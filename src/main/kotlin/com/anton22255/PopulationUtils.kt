@@ -67,7 +67,7 @@ class PopulationUtils(val initData: InitData, val statistic: Statistic) {
         choseLuckyAgents.forEach { index -> population[index].createBlock(time) }
     }
 
-    fun processMessage(
+    suspend fun processMessage(
         population: MutableList<Agent>,
         message: Message
     ) {
