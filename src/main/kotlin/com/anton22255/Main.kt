@@ -6,6 +6,7 @@ import com.anton22255.graph.GraphVisualisation
 import com.anton22255.transport.Message
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.newFixedThreadPoolContext
+import java.lang.Exception
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -32,20 +33,20 @@ object Main {
     @JvmStatic
     fun main(args: Array<String>) {
 
-        val newFixedThreadPoolContext = newFixedThreadPoolContext(10, "background")
+        val newFixedThreadPoolContext = newFixedThreadPoolContext(20, "background")
         val alphaVariants
-                = arrayOf(0.000)
-//                = (1..5).map { it / 100.0 }
+//                = arrayOf(0.000)
+                = (0..5).map { it / 100.0 }
         val liveAlphaVariants
-                = arrayOf(0.00)
-//                = (1..5).map { it / 100.0 }
+//                = arrayOf(0.00)
+                = (1..5).map { it / 100.0 }
         val sendTimeRange
 //                = arrayOf(1)
                 = arrayOf(1, 2, 4, 8, 16)
 //                = 1..5
         val sendBlockTimeRange
-                = arrayOf(0.1)
-//                = arrayOf(0.1, 0.5, 1.0, 3.0)
+//                = arrayOf(0.1)
+                = arrayOf(0.1, 0.5, 1.0, 3.0)
 //                = arrayOf(1.0, 1.5, 2.0, 2.5)
         val channelsRange
 //                = arrayOf(9)
@@ -55,8 +56,8 @@ object Main {
 //                    = arrayOf(100, 1000, 2000, 5000, 8000, 10000)
         val arrayOfChainTypes
 //                = arrayListOf(ChainType.IG)
-                = arrayListOf(ChainType.ANT)
-//                = ChainType.values()
+//                = arrayListOf(ChainType.ANT)
+                = ChainType.values()
         val periodRange
                 = arrayOf(2, 4, 8, 16)
 //                = arrayOf(2)
@@ -116,9 +117,9 @@ object Main {
         initData: InitData,
         newFixedThreadPoolContext: ExecutorCoroutineDispatcher
     ) {
-//        if (!dataBase.experimentExist(initData)) {
+        try {
 
-
+            if (!dataBase.experimentExist(initData)) {
 //        (1..5).forEach {
             val experiment = Experiment(
                 initData = initData,
@@ -126,7 +127,12 @@ object Main {
             )
             val startExperiment = experiment.startExperiment()
             dataBase.writeExperiment(startExperiment)
-//        }
+        }
+
+
+    }catch( e:Exception){
+            e.printStackTrace()
+        }
     }
 //    }
 }

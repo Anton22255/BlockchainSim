@@ -34,7 +34,11 @@ class IGBlockchain : Chain {
             findFirstDifIndex(hashes, getMainVersion())
         } ?: 1
         return ChainAnswer.ANSWER.apply {
-            data = mainBlocks.subList(firstDif, mainBlocks.size).map { it.copy() }
+            data = if(mainBlocks.size > firstDif) {
+                mainBlocks.subList(firstDif, mainBlocks.size).map { it.copy() }
+            }else{
+                emptyList()
+            }
         }
     }
 
@@ -45,7 +49,10 @@ class IGBlockchain : Chain {
     override fun answerData(answer: Any): ChainAnswer {
 
             (answer as? List<Block>)?.let {
-                if (it.last().depth >= mainBlocks.last().depth) {
+                if(it.isEmpty()){
+                    return ChainAnswer.DECLINE
+                }
+                if (it.lastOrNull()?.depth?:0 >= mainBlocks.last().depth) {
 
                     mainBlocks.removeAll(mainBlocks.takeLast(mainBlocks.last().depth - it.first().depth + 1))
 //                mainBlocks = mainBlocks.dropLast(mainBlocks.last().depth - it.first().depth + 1).toMutableList()

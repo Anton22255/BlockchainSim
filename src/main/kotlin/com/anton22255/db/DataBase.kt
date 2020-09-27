@@ -10,7 +10,7 @@ class DataBase {
 
     val database = Database.connect(
         "jdbc:postgresql://localhost:5432/postgres", driver = "org.postgresql.Driver",
-        user = "postgres"
+        user = "postgres", password = "1qazWSX2345@"
     )
 
     fun writeExperiment(statisticResult: StatisticResult) {
